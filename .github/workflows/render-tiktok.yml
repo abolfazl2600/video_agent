@@ -1,0 +1,57 @@
+name: Render Advertio Dark Tech TikTok
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'بز/**'
+      - '.github/workflows/render-tiktok.yml'
+permissions:
+  contents: read
+concurrency:
+  group: render-dark-tech-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+      - name: Install renderer dependencies
+        working-directory: 'بز'
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install Pillow==11.3.0
+          ffmpeg -version | head -n 1
+      - name: Validate and build HyperFrames preview bundle
+        working-directory: 'بز'
+        run: |
+          npm run lint
+          npm run build
+          python -m py_compile finish.py
+      - name: Render Three.js scene frames and TikTok MP4
+        working-directory: 'بز'
+        run: |
+          npm run render
+          ffprobe -v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -show_entries format=duration -of default=nw=1 flight-dark-tech-tiktok.mp4
+      - name: Render sample frames
+        working-directory: 'بز'
+        run: python finish.py --samples
+      - name: Publish downloadable MP4 and previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-dark-tech-tiktok
+          path: |
+            بز/flight-dark-tech-tiktok.mp4
+            بز/dark-tech-preview-*.jpg
+          retention-days: 30
+          if-no-files-found: error
