@@ -155,15 +155,15 @@ export function createFilm(){
   return parked;
  }
  // Arranged away from the runway (-18..18) at terminal and remote parking stands.
- createParkedAirliner({x:-36,z:-94,heading:-.12,scale:.82,accent:'#1B8CB3'});
- createParkedAirliner({x:38,z:-118,heading:Math.PI-.16,scale:.86,accent:'#2D6C96'});
- createParkedAirliner({x:-43,z:-171,heading:-.05,scale:.82,accent:'#247CA0'});
- createParkedAirliner({x:47,z:-208,heading:Math.PI+.10,scale:.88,accent:'#1C819B'});
+ createParkedAirliner({x:-27,z:-105,heading:1.13,scale:1.0,accent:'#1B8CB3'});
+ createParkedAirliner({x:28,z:-132,heading:-1.12,scale:1.02,accent:'#2D6C96'});
+ createParkedAirliner({x:-28,z:-179,heading:1.24,scale:.92,accent:'#247CA0'});
+ createParkedAirliner({x:29,z:-215,heading:-1.24,scale:.95,accent:'#1C819B'});
  // Taxiway edge guide lines, parking stand lead-ins and stop bars.
  for(const side of [-1,1]){
   line([[side*25,.038,70],[side*25,.038,-245]],'#17728C',.78,scene,.8);
-  for(const z of [-94,-118,-171,-208]){
-   const edge=side*25,stop=side*42;
+  for(const z of [-105,-132,-179,-215]){
+   const edge=side*21,stop=side*31;
    line([[edge,.048,z-5],[stop,.048,z-5],[stop,.048,z+6]],'#2C839D',.78,scene,.8);
    line([[stop-side*2,.05,z-3],[stop+side*2,.05,z-3]],'#B7EEF6',.75,scene,.7);
   }
