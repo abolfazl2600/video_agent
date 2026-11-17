@@ -1,16 +1,22 @@
 {
+  "name": "advertio-dark-tech-flight",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild browser.mjs --bundle --minify --format=iife --outfile=film.js",
+    "preview": "npx hyperframes preview",
+    "lint": "node --check scene.mjs && node --check render.mjs && node --check browser.mjs",
+    "frames": "node render.mjs",
+    "encode": "python3 finish.py",
+    "render": "npm run frames && npm run encode",
+    "samples": "node render.mjs --samples && python3 finish.py --samples"
+  },
   "dependencies": {
     "linkedom": "^0.18.12",
     "three": "^0.180.0",
     "sharp": "^0.34.0"
   },
-  "name": "flight-three-modern",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "preview": "npx hyperframes preview",
-    "lint": "npx hyperframes lint .",
-    "frames": "node render.mjs",
-    "encode": "python3 finish.py"
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   }
 }
