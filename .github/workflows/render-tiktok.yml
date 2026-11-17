@@ -43,15 +43,10 @@ jobs:
         run: |
           npm run render
           ffprobe -v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -show_entries format=duration -of default=nw=1 flight-dark-tech-tiktok.mp4
-      - name: Render sample frames
-        working-directory: 'بز'
-        run: python finish.py --samples
-      - name: Publish downloadable MP4 and previews
+      - name: Publish MP4 video only
         uses: actions/upload-artifact@v4
         with:
           name: advertio-dark-tech-tiktok
-          path: |
-            بز/flight-dark-tech-tiktok.mp4
-            بز/dark-tech-preview-*.jpg
+          path: بز/flight-dark-tech-tiktok.mp4
           retention-days: 30
           if-no-files-found: error
