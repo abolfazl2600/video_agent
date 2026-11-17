@@ -9,6 +9,9 @@ REF=P/'reference.jpg'
 def clamp(n): return max(0.,min(1.,n))
 def ease(n): n=clamp(n); return n*n*(3-2*n)
 def font(sz): return ImageFont.truetype(str(FONT),sz)
+def latin_font(sz):
+    try: return ImageFont.truetype('DejaVuSansMono.ttf',sz)
+    except OSError: return ImageFont.load_default(size=sz)
 def photo_frame(t):
     source=Image.open(REF).convert('RGB')
     im=ImageOps.fit(source,(W,H),Image.Resampling.LANCZOS,centering=(.5,.5))
@@ -30,11 +33,11 @@ def hud(im,t):
     for y in range(114,1200,32):
         d.line((40,y,46,y),fill=muted,width=2)
         d.line((674,y,680,y),fill=muted,width=2)
-    d.text((58,62),'ADVERTIO / FLIGHT OS',font=font(22),fill=(99,239,249,round(230*alpha)))
-    d.text((642,62),'REC',font=font(22),anchor='ra',fill=cyan)
+    d.text((58,62),'ADVERTIO / FLIGHT OS',font=latin_font(20),fill=(99,239,249,round(230*alpha)))
+    d.text((642,62),'REC',font=latin_font(20),anchor='ra',fill=cyan)
     d.ellipse((651,69,663,81),fill=(49,237,226,round(230*alpha)))
-    d.text((60,1186),'FLIGHT DATA // 09:16',font=font(19),fill=cyan)
-    d.text((660,1186),f'{t:05.2f} S',font=font(20),anchor='ra',fill=cyan)
+    d.text((60,1186),'FLIGHT DATA // 09:16',font=latin_font(17),fill=cyan)
+    d.text((660,1186),f'{t:05.2f} S',font=latin_font(18),anchor='ra',fill=cyan)
     yy=1000+round(80*math.sin(t*1.7))
     d.line((49,yy,72,yy),fill=(42,238,234,round(170*alpha)),width=3)
     d.line((648,yy,672,yy),fill=(42,238,234,round(170*alpha)),width=3)
@@ -53,7 +56,7 @@ def headline(im,t):
     if t>=12.85:
         a=ease((t-12.85)/.8)
         d.rounded_rectangle((176,976,544,1062),radius=12,fill=(7,39,56,round(220*a)),outline=(26,213,220,round(210*a)),width=3)
-        d.text((360,991),'advertio.net',font=font(53),anchor='mt',fill=(224,251,255,round(255*a)))
+        d.text((360,991),'advertio.net',font=latin_font(45),anchor='mt',fill=(224,251,255,round(255*a)))
     return Image.alpha_composite(im.convert('RGBA'),layer)
 def make_frame(i):
     t=i/FPS
