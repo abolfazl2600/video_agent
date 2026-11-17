@@ -1,0 +1,10 @@
+import {createFilm} from './scene.mjs';
+const film=createFilm();document.querySelector('#scene').appendChild(film.renderer.domElement);
+const tl=gsap.timeline({paused:true,onUpdate:()=>film.update(tl.time())});
+tl.from('#first',{opacity:0,y:14,duration:.65,ease:'power2.out'},7.9);
+tl.from('#space',{opacity:0,x:65,duration:.9,ease:'power3.out'},8.35);
+tl.from('#case',{opacity:0,x:32,scale:.96,duration:.85,ease:'expo.out'},8.7);
+tl.from('#stroke',{scaleX:0,transformOrigin:'right center',duration:.6,ease:'power3.out'},9.2);
+tl.from('#last',{opacity:0,y:12,duration:.75,ease:'sine.out'},9.35);
+tl.to('#scene',{scale:1.02,duration:5,ease:'sine.inOut'},10);
+window.__timelines=window.__timelines||{};window.__timelines.main=tl;window.film=film;
