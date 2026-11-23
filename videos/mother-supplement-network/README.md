@@ -26,3 +26,6 @@ Orthographic 30–45° miniature-3D arrangement on ivory background: black/white
 Actions → **Render Advertio Video — Select Folder and Quality** → Run workflow → choose this branch → `folder=custom`, `custom_folder=mother-supplement-network`, `mode=quick-preview` (or `preview`/`final`). Folder-scoped push renders Quick Preview automatically; all outputs remain in this folder's job/artifact.
 
 **Important:** Advertio connects users with travelers; it is not itself the carrier or provider of supplements. Any supplement must be permitted by airline, customs and carrier policies. «۱۱٬۰۰۰+» is marketing copy supplied for this campaign and should be verified against live platform data before publication.
+
+### Execution trigger
+A change to this folder launches the GitHub Actions folder-scoped **Quick Preview** and uploads a contact sheet plus ten sample JPGs; the workflow change and the story have both been committed on this branch.
