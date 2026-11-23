@@ -50,3 +50,6 @@ The video uses on-screen copy instead of spoken narration. No unlicensed footage
 ## Instagram Reels 9:16 update
 
 This revision switches both compositions to **true portrait** (native 1080×1920 final; 540×960 preview). Scenes are **recomposed**, not letterboxed or cropped from 16:9. Critical headlines and the original Advertio brand mark stay inside the portrait content-safe area. Top-of-screen numerical counters (for example, `01 / 05` and `SECURE LINK`) have been removed. A new detailed top-down twin-engine passenger aircraft includes cockpit windows, 38 cabin windows, winglets, doors, engines, metallic highlights and navigation lights; its nose follows the tangent of the animated Toronto → Tehran path, correcting the travel direction. Quick stills and contact sheet are portrait as well.
+
+### Correct preview scaling and visual validation
+Preview composition uses the **same 1080×1920 authoring canvas** as Final at 15 fps, and the Remotion CLI renders it with `--scale=0.5` into 540×960 pixels. This prevents nested AbsoluteFill/Sequence viewports from truncating the bottom of portrait scenes. CI inspects an actual 9.5-second preview frame and asserts that rich content remains visible in the lower half, instead of merely checking MP4 dimensions.

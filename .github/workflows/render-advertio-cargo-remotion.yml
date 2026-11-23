@@ -91,6 +91,24 @@ jobs:
           assert 19.8<=duration<=20.2,duration
           print(f'VERIFIED {mode}: {s["width"]}x{s["height"]}, {n/d:.0f}fps, {duration:.2f}s, {path.stat().st_size} bytes')
           PY
+      - name: Check lower-half visual content is not cropped
+        if: env.CARGO_MODE == 'preview'
+        run: |
+          ffmpeg -hide_banner -loglevel error -y -ss 9.5 -i out/preview.mp4 -frames:v 1 out/layout-check.png
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          p=Path('out/layout-check.png')
+          with Image.open(p) as im:
+              w,h=im.size
+              crop=im.convert('RGB').crop((w*0.22,h*0.58,w*0.82,h*0.79))
+              # The phone continues through this lower area. A prior preview
+              # bug produced a fully white lower half despite valid metadata.
+              samples=list(crop.getdata())
+              dark=sum(1 for r,g,b in samples if max(r,g,b)<140)
+              assert dark>220, f'Lower-half scene may be clipped: only {dark} dark pixels'
+              print('Layout check passed; lower-half phone content visible:',dark,'pixels')
+          PY
       - name: Verify Quick Preview
         if: env.CARGO_MODE == 'quick-preview'
         run: |

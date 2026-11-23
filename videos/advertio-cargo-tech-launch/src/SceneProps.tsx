@@ -11,7 +11,7 @@ export const TerminalBackdrop:React.FC<{variant?:'yyz'|'ika'}> = ({variant='yyz'
  <path d="M30 255 191 181 393 242 225 323Z" fill="#C6DFEB" opacity=".65" stroke="#A9D2E7" strokeWidth="2"/>
  {/* Terminal buildings and transparent multi-level curtain wall. */}
  <path d="M127 132 260 72 404 117 270 183Z" fill="#FCFEFF" stroke="#93C4E2" strokeWidth="2"/>
- <path d="M127 132 270 183 270 250 127 198Z" fill="url(#terminal'+variant+')" stroke="#75A9C9" strokeWidth="2.3"/>
+ <path d="M127 132 270 183 270 250 127 198Z" fill={`url(#terminal${variant})`} stroke="#75A9C9" strokeWidth="2.3"/>
  <path d="M270 183 404 117 404 187 270 250Z" fill="#A7CDE4" stroke="#79AACA" strokeWidth="2"/>
  {Array.from({length:6},(_,i)=><g key={i}>
   <path d={'M'+(142+i*20)+' '+(144+i*7.2)+' v45'} stroke="#7CAFD0" strokeWidth="2"/>
@@ -59,7 +59,7 @@ export const AirportDistrict:React.FC<{city:'TORONTO'|'TEHRAN'}> = ({city})=>{
   <path d={'M'+(176+i*10)+' '+(145-i*6)+' v32'} stroke="#C4E8F7" strokeWidth="3"/>
  </g>)}
  {/* Control tower with cab and operating beacon */}
- <path d="M44 144V77l26-12 29 14v62l-26 13Z" fill="url(#district'+city+')" stroke="#669DBC" strokeWidth="2"/>
+ <path d="M44 144V77l26-12 29 14v62l-26 13Z" fill={`url(#district${city})`} stroke="#669DBC" strokeWidth="2"/>
  <path d="M44 77 70 65 99 79 72 91Z" fill="#F7FDFF"/>
  <path d="M72 91 99 79v62l-26 13Z" fill="#7BAECC"/>
  <path d="M55 73V53l15-7 17 8v21" fill="#D5F3FB" stroke="#65A6CA" strokeWidth="3"/>
