@@ -49,3 +49,11 @@ The project's `render` command must respect `ADVERTIO_RENDER_MODE=preview|final`
 ## Mother supplement campaign
 
 The standalone `videos/mother-supplement-network/` project is included on main with a folder-scoped, Pillow-rendered Quick Preview (10 image samples plus a contact sheet) and manually selectable Preview/Final MP4 outputs. Open **Actions → Advertio Manual Render** and choose `mother-supplement-network` as the folder. Advertio connects customers with travelers; it is not the carrier. Any supplement or parcel must comply with airline, carrier, destination, and customs rules.
+
+## Reusable content templates
+
+- **[Image-to-Motion Storyboard v1 — Persian guide](./templates/image-to-motion-storyboard-v1/README.fa.md)**: the approved **16s, 4-scene, 9:16** Advertio motion-graphics format. Each prepared scene image is placed into a large **lower rounded viewport**, animated by slow camera pan/zoom, while independent Persian kinetic typography remains at the top. Includes scene-specific motion overlays, subtle crossfades and timeline.
+- **[Copy-paste full production prompt](./templates/image-to-motion-storyboard-v1/MASTER_PROMPT.en.md)**: detailed exact timings, layout coordinates, crop/pan/zoom parameters, logo rules, GitHub Actions instructions and output-quality checks.
+- **[Editable example configuration](./templates/image-to-motion-storyboard-v1/template.example.json)**: machine-readable parameters and four example scenes.
+
+This is an **image-based 2.5D animation template**, not a full character rig and not a new video project. To use it, supply one four-panel source artwork or four scene images, plus the campaign's Persian text; create a new isolated folder under videos/. The source project's original Advertio logo must be used when the logo appears; do not generate or approximate a logo.
