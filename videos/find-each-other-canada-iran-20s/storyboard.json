@@ -1,0 +1,72 @@
+{
+  "project": "Advertio | فقط باید همدیگه رو پیدا کنن!",
+  "folder": "videos/find-each-other-canada-iran-20s",
+  "type": "storyboard-static-references",
+  "duration_seconds": 20,
+  "aspect_ratio": "9:16",
+  "repository_font_files": [
+    "assets/fonts/Vazirmatn-Regular.ttf",
+    "assets/fonts/Vazirmatn-Bold.ttf"
+  ],
+  "preview": "10fps",
+  "final": "30fps",
+  "render_implemented": false,
+  "generated_images_committed_to_repository": false,
+  "assets_dir": "assets/storyboard_frames",
+  "styling": {
+    "background": "#062E3A",
+    "yellow_plane": "#F4BE39",
+    "accent": "#80BED2",
+    "camera": "orthographic isometric",
+    "materials": "matte soft clay",
+    "shadows": "diffuse subtle",
+    "composition": "small subjects with generous negative space"
+  },
+  "scenes": [
+    {
+      "scene": 1,
+      "start": 0,
+      "end": 3,
+      "frame": "01_hook_canada.png",
+      "camera": "fast push-in on the parcel",
+      "narration": "این بسته باید بره ایران... ولی چه طوری بفرستم؟!",
+      "text": "یه بسته، ۱۰ هزار کیلومتر فاصله!"
+    },
+    {
+      "scene": 2,
+      "start": 3,
+      "end": 7,
+      "frame": "02_airport_traveler.png",
+      "camera": "airport cut, pull-up to opposing sides",
+      "narration": "اون طرف، یکی همین هفته داره می‌ره ایران!",
+      "text": "فقط هنوز همدیگه رو پیدا نکردن!"
+    },
+    {
+      "scene": 3,
+      "start": 7,
+      "end": 11,
+      "frame": "03_advertio_entry.png",
+      "camera": "minimal app introduction",
+      "narration": "اینجاست که ادورتیو وارد می‌شه!",
+      "supporting": "ادورتیو کمک می‌کنه بدون واسطه بارتو سریع و هوایی ارسال کنی",
+      "text": "آگهی بذار، مسافر پیدا کن."
+    },
+    {
+      "scene": 4,
+      "start": 11,
+      "end": 16,
+      "frame": "04_connection_message.png",
+      "camera": "animate cyan line and message",
+      "message": "من جمعه می‌رم تهران، می‌تونم بسته‌ات رو ببرم!"
+    },
+    {
+      "scene": 5,
+      "start": 16,
+      "end": 20,
+      "frame": "05_plane_cta.png",
+      "camera": "small yellow plane Canada to Iran, central phone",
+      "text": "بار داری؟ مسافرت رو پیدا کن!",
+      "footer": "Advertio.net | ارسال بار مسافری"
+    }
+  ]
+}
