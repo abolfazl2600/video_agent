@@ -30,6 +30,7 @@ on:
   push:
     paths:
       - 'videos/**'
+      - '.github/workflows/render-video.yml'
 
 permissions:
   contents: read
