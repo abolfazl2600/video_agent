@@ -2,6 +2,7 @@ import React from 'react';
 import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {C,F,BrandLogo,Person,TechRings,pop,fp,useF} from './components';
 import {AirlinerDetailed,CargoParcelDetailed,TechnicalPill} from './DetailAssets';
+import {ProductPhone} from './ProductPhone';
 
 const at=(left:number,top:number,extra:React.CSSProperties={}):React.CSSProperties=>({position:'absolute',left,top,...extra});
 const text=(size:number,color=C.navy,weight=850):React.CSSProperties=>({fontFamily:F,fontSize:size,fontWeight:weight,color,lineHeight:1.46,letterSpacing:-1.5,direction:'rtl',textAlign:'center'});
@@ -91,34 +92,12 @@ const SceneTwo:React.FC=()=>{
  </Scene>;
 };
 
-const Phone:React.FC<{width?:number}>=({width=580})=>{
- const f=useF(),height=width*1.93,s=width/580;
- const line=(title:string,value:string)=><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:15,borderBottom:'2px solid #DCECF5',padding:(27*s)+'px 0'}}>
-  <span style={{fontSize:23*s,color:C.muted,flexShrink:0}}>{title}</span><b style={{fontSize:29*s,color:C.navy}}>{value}</b>
- </div>;
- return <div style={{width,height,padding:21*s,borderRadius:72*s,background:'linear-gradient(120deg,#0D2547,#476782 43%,#0B213E)',boxShadow:'25px 32px 75px #104A804A,inset 0 0 0 3px #B4CDDF',transform:'translateY('+Math.sin(f*.045)*10+'px) rotateZ('+Math.sin(f*.02)*.7+'deg)',boxSizing:'border-box',position:'relative'}}>
-  <div style={{width:'100%',height:'100%',background:'#FFFFFF',borderRadius:55*s,overflow:'hidden',padding:37*s,boxSizing:'border-box',fontFamily:F,direction:'rtl',position:'relative'}}>
-   <div style={{position:'absolute',left:'50%',top:20*s,transform:'translateX(-50%)',width:154*s,height:26*s,borderRadius:25,background:'#10213B'}}/>
-   <div style={{height:45*s}}/>
-   <div style={{display:'flex',alignItems:'center',gap:16*s,borderBottom:'2px solid #E2EDF4',paddingBottom:25*s}}><BrandLogo size={67*s}/><div style={{fontWeight:900,fontSize:32*s,color:C.navy}}>ادورتیو <span style={{color:C.blue}}>کارگو</span></div></div>
-   <div style={{marginTop:29*s,fontWeight:900,fontSize:35*s,lineHeight:1.55,color:C.navy}}>آگهی حمل بار مسافری</div>
-   <div style={{fontFamily:'ui-monospace,monospace',fontSize:15*s,color:C.muted,letterSpacing:1,marginTop:11*s,direction:'ltr',textAlign:'right'}}>DEMO / SAMPLE LISTING</div>
-   <div style={{marginTop:25*s,padding:25*s,borderRadius:25*s,background:'#F4FAFE',border:'2px solid #DAEAF4'}}>
-    {line('مبدأ','تورنتو، کانادا')}{line('مقصد','تهران، ایران')}{line('مرسوله','بسته و مدارک')}
-    <div style={{marginTop:21*s,borderRadius:13*s,background:'#DFF8F9',color:'#087C91',padding:17*s,textAlign:'center',fontWeight:800,fontSize:24*s}}>ارتباط با مسافر</div>
-   </div>
-   <div style={{marginTop:38*s,padding:20*s,borderRadius:19*s,background:'linear-gradient(90deg,#0A6FD9,#20B8E6)',color:'white',fontSize:29*s,fontWeight:900,textAlign:'center'}}>مشاهده آگهی‌های مسیر</div>
-   <div style={{marginTop:23*s,textAlign:'center',fontFamily:'ui-monospace,monospace',fontSize:22*s,color:C.muted}}>Advertio.net</div>
-  </div>
- </div>;
-};
-
 const SceneThree:React.FC=()=>{
  const f=useF(),a=pop(f,4,125);
  return <Scene duration={150}>
   <div style={at(80,325,{width:920})}><div style={text(61,C.navy)}>اینجاست که ادورتیو</div><div style={text(66,C.blue)}>وارد می‌شه!</div></div>
   <div style={at(135,515,{opacity:.52})}><TechRings size={800}/></div>
-  <div style={at(255,495,{opacity:fp(f,2,19),transform:'translateY('+((1-a)*600)+'px) scale('+(0.55+.45*a)+')'})}><Phone width={565}/></div>
+  <div style={at(255,495,{opacity:fp(f,2,19),transform:'translateY('+((1-a)*600)+'px) scale('+(0.55+.45*a)+')'})}><ProductPhone width={565}/></div>
   {['ثبت آگهی ارسال بار','انتخاب مبدأ و مقصد','ارتباط مستقیم با مسافر'].map((label,i)=>{
    const px=i===0?68:i===1?525:78,py=[1120,1290,1460][i];
    return <div key={label} style={at(px,py,{padding:'18px 27px',border:'2px solid #58C7E0',borderRadius:18,background:'rgba(10,52,97,.91)',boxShadow:'0 18px 35px rgba(4,62,122,.23)',transform:'translateX('+((1-pop(f,37+i*19))* (i===1?400:-420))+'px)',opacity:fp(f,32+i*19,48+i*19)})}>
@@ -188,7 +167,7 @@ const SceneFive:React.FC=()=>{
    <div style={{height:5,width:400,margin:'19px auto',background:'linear-gradient(90deg,#0F69D7,#21CBE1)'}}/>
   </div>
   <div style={at(175,540,{opacity:.48})}><TechRings size={730}/></div>
-  <div style={at(330,600,{transform:'scale(.70)',transformOrigin:'left top'})}><Phone width={565}/></div>
+  <div style={at(330,600,{transform:'scale(.70)',transformOrigin:'left top'})}><ProductPhone width={565}/></div>
   <div style={at(66,1000,{transform:'rotate(-17deg)'})}><AirlinerDetailed width={560}/></div>
   <div style={at(650,1120,{transform:'scale(.67)',transformOrigin:'left top'})}><CargoParcelDetailed width={330}/></div>
   <div style={at(95,1440,{width:890,opacity:fp(f,20,43)})}>
