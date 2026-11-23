@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ (matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network') && 'quick-preview' || 'preview' }}
+      ADVERTIO_RENDER_MODE: ${{ (matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network' || matrix.folder == 'us-iran-air-cargo-topdown') && 'quick-preview' || 'preview' }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
@@ -116,7 +116,7 @@ jobs:
         shell: bash
         run: |
           if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
-            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ] && [ "$VIDEO_FOLDER" != "mother-supplement-network" ]; then
+            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ] && [ "$VIDEO_FOLDER" != "mother-supplement-network" ] && [ "$VIDEO_FOLDER" != "us-iran-air-cargo-topdown" ]; then
               echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
               exit 1
             fi
@@ -158,7 +158,7 @@ jobs:
           fps=num/den
           duration=float(obj['format']['duration'])
           assert w>0 and h>0 and fps>0 and duration>0, (w,h,fps,duration)
-          if os.environ['VIDEO_FOLDER'] in ('parcel-to-iran-isometric','mother-supplement-network'):
+          if os.environ['VIDEO_FOLDER'] in ('parcel-to-iran-isometric','mother-supplement-network','us-iran-air-cargo-topdown'):
               expected=(540,960,10) if mode=='preview' else (1080,1920,30)
               assert (w,h)==expected[:2] and abs(fps-expected[2])<0.01, (mode,w,h,fps)
               assert 14.9<=duration<=15.1, (mode,duration)
