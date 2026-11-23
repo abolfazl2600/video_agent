@@ -44,7 +44,6 @@ def line(d,x0,y0,x1,y1,c=INK,w=3):
     d.line((x0,y0,x1,y1),fill=(*c,255),width=w)
 def header(d,t):
     en(d,62,62,'ADVERTIO',28,INK,True,anchor='lm')
-    d.ellipse((215,55,225,65),fill=(*ORANGE,255))
     en(d,655,61,f'{1 if t<4 else 2 if t<7 else 3 if t<11 else 4:02d} / 04',17,SUBTLE,False,anchor='rm')
     line(d,62,102,104,102,ORANGE,5)
     line(d,118,102,148,102,INK,5)
