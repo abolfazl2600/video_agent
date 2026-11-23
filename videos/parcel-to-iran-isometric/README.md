@@ -23,6 +23,7 @@ A standalone 15-second, vertical, **real 3D isometric** short-form ad for Advert
 From **this directory only** (Node.js 22+, Python 3.12 with Pillow 11.3.0, and FFmpeg required):
 
 ```bash
+sudo apt-get update -qq && sudo apt-get install -y ffmpeg
 npm install
 python3 -m pip install Pillow==11.3.0
 npm run lint
@@ -34,3 +35,6 @@ Optional representative frame previews: `npm run samples`. The final video rende
 ## GitHub Actions
 
 **Actions → Render Advertio Video by Folder → Run workflow** and enter `parcel-to-iran-isometric` as the folder. GitHub automatically renders this video on commits changing `videos/parcel-to-iran-isometric/**`; edits to other video folders do not rebuild it. Download `advertio-parcel-to-iran-isometric-<run number>` from Artifacts.
+
+### CI reliability
+The workflow installs FFmpeg and FFprobe **before** 3D frame rendering, so encoding dependencies are validated early instead of failing after the 450-frame render. The initial run failed during encoding because FFmpeg was missing; this project update triggers the corrected folder-only workflow automatically.
