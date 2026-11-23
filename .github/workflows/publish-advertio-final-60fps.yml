@@ -30,19 +30,10 @@ jobs:
           test "$(find "$DIR/final60/chunks" -name 'part-*.bin' -type f | wc -l)" -eq 20
           cat "$DIR"/final60/chunks/part-*.bin > "$TARGET"
           printf '%s  %s\n' '4fd6cc32ed803fef1c7fa8ab955e511647d0ec20de93333d3dff53202946282a' "$TARGET" | sha256sum -c -
-          if ! command -v ffprobe >/dev/null; then
-            sudo apt-get update -qq && sudo apt-get install -y ffmpeg
-          fi
-          python3 - <<'PY'
-          import json, subprocess
-          p='videos/parcel-finder-image-motion-20s/final/advertio_package_finder_20s_SMOOTH_FINAL_1080x1920_60fps.mp4'
-          doc=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration:stream=width,height,avg_frame_rate','-of','json',p],text=True))
-          s=doc['streams'][0]
-          assert (s['width'],s['height']) == (1080,1920),s
-          assert s['avg_frame_rate']=='60/1',s
-          assert abs(float(doc['format']['duration'])-20.0)<.01,doc
-          print('Verified original approved 1080x1920, 60fps, 20s video')
-          PY
+          # SHA-256 and byte count verify the exact MP4 already inspected with
+          # ffprobe (1080x1920 / 60fps / 20.000s) before transfer.
+          test "$(wc -c < "$TARGET")" -eq 11980252
+          echo "Verified SHA-256, original bytes, and complete video reconstruction"
       - name: Upload untouched original MP4 as downloadable artifact
         uses: actions/upload-artifact@v4
         with:
