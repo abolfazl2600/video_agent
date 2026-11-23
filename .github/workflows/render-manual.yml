@@ -1,0 +1,210 @@
+name: Advertio Manual Render - Folder and Preview or Final
+
+# Dedicated manual-only workflow; separate from the auto-preview on push.
+on:
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: 'Choose a video project under videos/'
+        type: choice
+        required: true
+        default: parcel-to-iran-isometric
+        options:
+          - parcel-to-iran-isometric
+          - custom
+      custom_folder:
+        description: 'If folder is custom, enter videos/<this-name> (slug only)'
+        type: string
+        required: false
+      mode:
+        description: 'Render quality'
+        type: choice
+        required: true
+        default: preview
+        options:
+          - preview
+          - final
+
+permissions:
+  contents: read
+
+jobs:
+  select-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      folders: ${{ steps.select.outputs.folders }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        name: Select only the requested or changed video folders
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_FOLDER: ${{ inputs.folder }}
+          CUSTOM_FOLDER: ${{ inputs.custom_folder }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, pathlib, re, subprocess, sys
+          root = pathlib.Path("videos")
+          if os.environ["EVENT_NAME"] == "workflow_dispatch":
+              selected = os.environ["REQUESTED_FOLDER"].strip()
+              custom = os.environ.get("CUSTOM_FOLDER", "").strip()
+              if selected == "custom":
+                  if not custom:
+                      sys.exit("When selecting custom, enter a value in custom_folder")
+                  folders = [custom]
+              else:
+                  if custom:
+                      sys.exit("Clear custom_folder unless folder=custom")
+                  folders = [selected]
+          else:
+              before, after = os.environ.get("BEFORE_SHA", ""), os.environ["AFTER_SHA"]
+              if not before or set(before) == {"0"}:
+                  args = ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", after]
+              else:
+                  args = ["git", "diff", "--name-only", before, after, "--", "videos/"]
+              changed = subprocess.check_output(args, text=True).splitlines()
+              folders = sorted({p.split("/")[1] for p in changed
+                                if p.startswith("videos/") and len(p.split("/")) >= 3})
+          validated = []
+          for name in folders:
+              if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
+                  sys.exit("Invalid video folder: " + name)
+              project = root / name
+              if not (project / "package.json").is_file():
+                  if os.environ["EVENT_NAME"] == "workflow_dispatch":
+                      sys.exit("No runnable video project in: " + str(project))
+                  continue  # a removed folder must not break other builds
+              validated.append(name)
+          print("folders=" + json.dumps(validated, separators=(",", ":")))
+          print("Selected video folders:", ", ".join(validated) if validated else "(none)", file=sys.stderr)
+          PY
+
+  render:
+    needs: select-projects
+    if: ${{ needs.select-projects.outputs.folders != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
+      VIDEO_FOLDER: ${{ matrix.folder }}
+    strategy:
+      fail-fast: false
+      matrix:
+        folder: ${{ fromJSON(needs.select-projects.outputs.folders) }}
+    concurrency:
+      group: advertio-render-${{ matrix.folder }}-${{ github.ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: videos/${{ matrix.folder }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install FFmpeg (required for video encoding)
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version
+      - name: Install project dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install Pillow==11.3.0
+      - name: Validate shared Persian font assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import ImageFont, features
+          root = Path.cwd().parents[1]
+          assert features.check('raqm'), 'Pillow libraqm is required for correct Persian shaping'
+          for filename in ('Vazirmatn-Regular.ttf', 'Vazirmatn-Bold.ttf'):
+              f = root / 'assets' / 'fonts' / filename
+              assert f.is_file(), f'Missing shared font: {f}'
+              font = ImageFont.truetype(str(f), 36)
+              print(f'Loaded shared Persian font: {f.name} ({f.stat().st_size} bytes)')
+          PY
+      - name: Validate only the selected video
+        run: npm run lint
+      - name: Render selected mode for this folder
+        shell: bash
+        run: |
+          if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
+            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ]; then
+              echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
+              exit 1
+            fi
+            ADVERTIO_RENDER_MODE=preview npm run samples
+          else
+            npm run render
+          fi
+      - name: Verify Quick Preview image set
+        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          frames=sorted(Path('.').glob('frame-sample-*.jpg'))
+          assert len(frames)==10, f'Expected 10 images, got {len(frames)}'
+          for path in frames:
+              with Image.open(path) as im:
+                  assert im.size==(720,1280), (path,im.size)
+          sheet=Path('quick-preview-contact-sheet.jpg')
+          assert sheet.is_file() and sheet.stat().st_size>1000, 'Missing contact sheet'
+          with Image.open(sheet) as im:
+              im.verify()
+          print('Quick Preview: 10 verified frames and one contact sheet')
+          PY
+      - name: Verify Preview or Final MP4
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
+        run: |
+          python - <<'PY'
+          import json, os, pathlib, subprocess
+          mode=os.environ['ADVERTIO_RENDER_MODE']
+          name='preview.mp4' if mode=='preview' else 'output.mp4'
+          path=pathlib.Path(name)
+          assert path.is_file() and path.stat().st_size>1000, f'Missing output: {path}'
+          raw=subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=width,height,avg_frame_rate:format=duration','-of','json',name],text=True)
+          obj=json.loads(raw)
+          stream=obj['streams'][0]
+          w,h=int(stream['width']),int(stream['height'])
+          num,den=map(int,stream['avg_frame_rate'].split('/'))
+          fps=num/den
+          duration=float(obj['format']['duration'])
+          assert w>0 and h>0 and fps>0 and duration>0, (w,h,fps,duration)
+          if os.environ['VIDEO_FOLDER']=='parcel-to-iran-isometric':
+              expected=(540,960,10) if mode=='preview' else (1080,1920,30)
+              assert (w,h)==expected[:2] and abs(fps-expected[2])<0.01, (mode,w,h,fps)
+              assert 14.9<=duration<=15.1, (mode,duration)
+          print(f'{mode}: {name}, {w}x{h}, {fps}fps, {duration:.2f}s')
+          PY
+      - name: Upload Quick Preview images
+        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-${{ matrix.folder }}-quick-preview-${{ github.run_number }}
+          path: |
+            videos/${{ matrix.folder }}/frame-sample-*.jpg
+            videos/${{ matrix.folder }}/quick-preview-contact-sheet.jpg
+          retention-days: 30
+          if-no-files-found: error
+      - name: Upload only the selected mode's MP4
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-${{ matrix.folder }}-${{ env.ADVERTIO_RENDER_MODE }}-${{ github.run_number }}
+          path: videos/${{ matrix.folder }}/${{ env.ADVERTIO_RENDER_MODE == 'preview' && 'preview.mp4' || 'output.mp4' }}
+          retention-days: 30
+          if-no-files-found: error
