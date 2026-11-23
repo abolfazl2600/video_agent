@@ -70,7 +70,7 @@ def story(d,t):
         persian(d,360,1180,'فاصله نباید مانع کمک‌کردن باشه',24,False,INK,255*e((u-1)/.6))
     elif t<7:
         u=t-3.8
-        persian(d,360,207,'مکمل رو تهیه کردی...',49,True,INK,255*e((u+.02)/.4))
+        persian(d,360,207,'مکمل رو تهیه کردی',49,True,INK,255*e((u+.02)/.4))
         persian(d,360,302,'چطور به ایران برسونیش؟',42,True,ORANGE,255*e((u-.55)/.5))
         persian(d,360,1125,'یه مسافرِ مسیر ایران لازمه',31,True,INK,255*e((u-1)/.5))
         english(d,360,1175,'CANADA   →   IRAN',22,True,GREY,255*e((u-1.35)/.55))
@@ -78,7 +78,7 @@ def story(d,t):
         u=t-7
         persian(d,360,192,'توی ادورتیو',58,True,INK,255*e((u+.05)/.42))
         persian(d,360,280,'مسافر مسیر ایران رو',44,True,INK,255*e((u-.43)/.47))
-        persian(d,360,359,'پیدا کن!',57,True,ORANGE,255*e((u-.84)/.47))
+        persian(d,360,359,'پیدا کن',57,True,ORANGE,255*e((u-.84)/.47))
         persian(d,360,1133,'آگهی‌ها رو ببین، گفت‌وگو کن',29,True,INK,255*e((u-1.05)/.6))
         english(d,360,1174,'CONNECT WITH TRAVELERS',18,True,GREY,255*e((u-1.4)/.55))
     else:
