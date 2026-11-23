@@ -1,0 +1,102 @@
+name: Traveler Dollar Income - Clean Final
+run-name: Clean traveler income final | ${{ github.ref_name }}
+
+on:
+  push:
+    branches:
+      - feature/traveler-dollar-income-clean-final
+    paths:
+      - 'videos/advertio-traveler-dollar-income-23s/render.py'
+      - 'videos/advertio-traveler-dollar-income-23s/README.md'
+      - '.github/workflows/render-traveler-dollar-income-clean-final.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: traveler-dollar-income-clean-final-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render-only-this-folder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: videos/advertio-traveler-dollar-income-23s
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install encoding and typography dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+      - name: Validate this video's source and required assets
+        run: |
+          python -m py_compile render.py
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import ImageFont, features
+          root=Path.cwd()
+          assert features.check('raqm'), 'Persian text shaping requires libraqm'
+          assert len(list((root/'assets/scenes').glob('scene-*.webp')))==6
+          assert len(list((root/'assets/typography').glob('*.webp')))>=6
+          for filename in ('Vazirmatn-Regular.ttf','Vazirmatn-Bold.ttf'):
+              assert (root.parents[1]/'assets/fonts'/filename).is_file()
+          source=(root/'render.py').read_text()
+          assert 'logo_layer(' not in source and 'source_logo(' not in source
+          assert 'remove_embedded_brand_marks(' in source
+          print('Source and all required assets verified.')
+          PY
+      - name: Render high-quality clean 9:16 final
+        env:
+          ADVERTIO_RENDER_MODE: final
+        run: python render.py
+      - name: Produce clean final and preview in this project's renders folder
+        run: |
+          mkdir -p renders
+          ffmpeg -hide_banner -loglevel error -y -i output.mp4 -vf scale=720:1280:flags=lanczos -r 30 -c:v libx264 -preset fast -crf 21 -pix_fmt yuv420p -movflags +faststart renders/preview.mp4
+          mv output.mp4 renders/final.mp4
+          python - <<'PY'
+          import json, subprocess
+          from pathlib import Path
+          for name,res in [('final.mp4',(1080,1920)),('preview.mp4',(720,1280))]:
+              p=Path('renders')/name
+              assert p.exists() and p.stat().st_size>100000,p
+              output=subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=width,height,avg_frame_rate:format=duration','-of','json',str(p)],text=True)
+              data=json.loads(output);video=data['streams'][0]
+              assert (video['width'],video['height'])==res,data
+              assert abs(float(data['format']['duration'])-23)<.15,data
+              n,d=map(int,video['avg_frame_rate'].split('/'))
+              assert abs(n/d-30)<.02,data
+              print(name,p.stat().st_size,'bytes,',res, '30fps, 23 seconds')
+          PY
+      - name: Publish both cleaned MP4s and storyboard back to this branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add videos/advertio-traveler-dollar-income-23s/renders/final.mp4 videos/advertio-traveler-dollar-income-23s/renders/preview.mp4 videos/advertio-traveler-dollar-income-23s/renders/quick-preview-contact-sheet.jpg
+          if git diff --cached --quiet; then
+            echo 'Rendered files already match branch'
+          else
+            git commit -m "build(video): publish logo-free 1080p final and clean preview"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+        working-directory: .
+      - name: Upload final MP4 and preview as downloadable artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: traveler-dollar-income-clean-final-${{ github.run_number }}
+          path: |
+            videos/advertio-traveler-dollar-income-23s/renders/final.mp4
+            videos/advertio-traveler-dollar-income-23s/renders/preview.mp4
+            videos/advertio-traveler-dollar-income-23s/renders/quick-preview-contact-sheet.jpg
+          retention-days: 30
+          if-no-files-found: error
