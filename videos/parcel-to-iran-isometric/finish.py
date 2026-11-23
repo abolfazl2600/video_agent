@@ -180,11 +180,33 @@ def make_frame(i):
     return Image.alpha_composite(im,layer).convert('RGB')
 
 def render_samples():
-    for t in [0,1.5,3.5,4.5,6.5,8,9.5,11.5,13.5,14.9]:
+    """Ten representative story moments with Persian typography; no MP4 encoding."""
+    times=[0,1.5,3.5,4.5,6.5,8,9.5,11.5,13.5,14.9]
+    samples=[]
+    for t in times:
         i=min(COUNT-1,round(t*FPS))
         filename=P/f'frame-sample-{i:03d}.jpg'
         make_frame(i).save(filename,quality=91)
-        print(filename)
+        samples.append((t,filename))
+        print('Quick Preview frame:',filename,flush=True)
+
+    columns, thumb_w, thumb_h, gap, margin, caption_h = 5,216,384,16,24,42
+    rows=(len(samples)+columns-1)//columns
+    sheet_w=margin*2+columns*thumb_w+(columns-1)*gap
+    sheet_h=margin*2+52+rows*(thumb_h+caption_h)+(rows-1)*gap
+    overview=Image.new('RGB',(sheet_w,sheet_h),WHITE)
+    d=ImageDraw.Draw(overview)
+    d.text((margin,22),'Advertio | Quick Preview',font=font(27,True),fill=INK)
+    for j,(t,path) in enumerate(samples):
+        col,row=j%columns,j//columns
+        x=margin+col*(thumb_w+gap)
+        y=margin+52+row*(thumb_h+caption_h+gap)
+        with Image.open(path) as im:
+            overview.paste(im.resize((thumb_w,thumb_h),Image.Resampling.LANCZOS),(x,y))
+        d.text((x+4,y+thumb_h+8),f'{t:04.1f}s',font=font(20,True),fill=INK)
+    output=P/'quick-preview-contact-sheet.jpg'
+    overview.save(output,quality=91,subsampling=0)
+    print('Quick Preview contact sheet:',output,flush=True)
 
 def render_mp4():
     out=OUTPUT

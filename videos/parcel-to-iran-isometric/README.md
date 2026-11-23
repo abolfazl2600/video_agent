@@ -13,6 +13,8 @@ A standalone 15-second, vertical, **real 3D isometric** short-form ad for Advert
 
 ## Output
 
+- **Quick Preview:** 10 key JPG frames with Persian text and a `quick-preview-contact-sheet.jpg` montage; no MP4 encoding. Default for this folder in GitHub Actions, optimized for fast visual review.
+
 - **Default Preview:** `preview.mp4` — H.264, 540×960, 10 fps, 15 seconds; no audio track. The Three.js scene renders at 360×640 to make iteration significantly faster.
 - **Explicit Final:** `output.mp4` — H.264, 1080×1920, 30 fps, 15 seconds; no audio track. Final mode uses the original 720×1280 geometry master and high-quality encoding.
 - Characters, buildings, trees, parcels, phones and the surrounding stage are authored in 3D.
@@ -29,16 +31,18 @@ sudo apt-get update -qq && sudo apt-get install -y ffmpeg
 npm install
 python3 -m pip install Pillow==11.3.0
 npm run lint
-npm run render                                # 10 fps preview (default)
+npm run samples                               # Quick Preview (10 frames + contact sheet)
+npm run render                                # Preview video (10 fps)
 ADVERTIO_RENDER_MODE=final npm run render     # 30 fps final, explicit
 ```
 
-Optional representative frame previews: `npm run samples`. The final video renderer runs without building other projects in this repository. A Linux environment with the system DejaVu fonts is expected.
+Use `npm run samples` for the fast image-only Quick Preview. The final video renderer runs without building other projects in this repository. A Linux environment with the system DejaVu fonts is expected.
 
 ## GitHub Actions
 
 **Actions → Render Advertio Video by Folder → Run workflow** and enter `parcel-to-iran-isometric` as the folder.
-- **Preview** is preselected for manual runs and is always used automatically for pushes changing this folder. Download `advertio-parcel-to-iran-isometric-preview-<run number>` (contains `preview.mp4`).
+- **Quick Preview** is the manual default and runs automatically on pushes changing this folder. Download `advertio-parcel-to-iran-isometric-quick-preview-<run number>` for 10 JPGs and the overview image.
+- **Preview** may be selected manually for the full 540×960 / 10 fps `preview.mp4`.
 - **Final** must be selected manually after explicit approval/request; no push can start a Final render. Download `advertio-parcel-to-iran-isometric-final-<run number>` (contains `output.mp4`).
 - Other folders are not rebuilt when this folder changes.
 
@@ -52,7 +56,7 @@ The scene was rebuilt to follow the supplied reference image: multiple matte ivo
 
 Typography: the original Vazirmatn Regular and Bold font binaries stored at `../../assets/fonts/` are rendered in charcoal/teal over minimal translucent ivory editorial cards. No generated or reinterpreted Advertio logo is introduced. The source image is an art-direction reference; its pixels are not embedded into the video.
 
-**Render policy:** pushing these scene changes runs only the 10 fps `preview.mp4` workflow for this folder. A 30 fps Final must be selected explicitly in GitHub Actions.
+**Render policy:** pushing scene changes runs only a 10-frame Quick Preview for this folder; Preview and Final MP4 modes are manual choices. A 30 fps Final must be selected explicitly in GitHub Actions.
 
 ### Preview render efficiency
 The 3D city now models only building facades facing the orthographic camera; rear-wall windows that would be completely invisible are not constructed. Box surfaces use cached, slightly different face colors to approximate the gentle daylight shading of the reference without expensive real-time lighting. This reduces SVG workload while improving architectural readability.
@@ -69,4 +73,4 @@ This branch intentionally **does not change main**. It explores a quieter, premi
 - Matching low-contrast ivory typographic cards using Vazirmatn from shared `assets/fonts/`.
 - No generated logo. If required, only the original Advertio Logo.png is allowed.
 
-**Production rules:** default to Preview mode (10 fps, 540x960, `preview.mp4`); never run Final automatically. All output remains isolated to this folder and branch.
+**Production rules:** default to Quick Preview (10 JPGs + contact sheet); full Preview and Final are explicit manual choices. All output remains isolated to this folder and branch.
