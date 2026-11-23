@@ -1,0 +1,112 @@
+name: Render Advertio Video by Folder
+
+on:
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: 'Video folder name inside videos/ (example: parcel-to-iran-isometric)'
+        required: true
+        type: string
+  push:
+    paths:
+      - 'videos/**'
+
+permissions:
+  contents: read
+
+jobs:
+  select-projects:
+    runs-on: ubuntu-latest
+    outputs:
+      folders: ${{ steps.select.outputs.folders }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: select
+        name: Select only the requested or changed video folders
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_FOLDER: ${{ inputs.folder }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os, pathlib, re, subprocess, sys
+          root = pathlib.Path("videos")
+          if os.environ["EVENT_NAME"] == "workflow_dispatch":
+              folders = [os.environ["REQUESTED_FOLDER"].strip()]
+          else:
+              before, after = os.environ.get("BEFORE_SHA", ""), os.environ["AFTER_SHA"]
+              if not before or set(before) == {"0"}:
+                  args = ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", after]
+              else:
+                  args = ["git", "diff", "--name-only", before, after, "--", "videos/"]
+              changed = subprocess.check_output(args, text=True).splitlines()
+              folders = sorted({p.split("/")[1] for p in changed
+                                if p.startswith("videos/") and len(p.split("/")) >= 3})
+          validated = []
+          for name in folders:
+              if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
+                  sys.exit("Invalid video folder: " + name)
+              project = root / name
+              if not (project / "package.json").is_file():
+                  if os.environ["EVENT_NAME"] == "workflow_dispatch":
+                      sys.exit("No runnable video project in: " + str(project))
+                  continue  # a removed folder must not break other builds
+              validated.append(name)
+          print("folders=" + json.dumps(validated, separators=(",", ":")))
+          PY
+
+  render:
+    needs: select-projects
+    if: ${{ needs.select-projects.outputs.folders != '[]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        folder: ${{ fromJSON(needs.select-projects.outputs.folders) }}
+    concurrency:
+      group: advertio-render-${{ matrix.folder }}-${{ github.ref }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: videos/${{ matrix.folder }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install project dependencies
+        run: |
+          npm install --no-audit --no-fund
+          python -m pip install Pillow==11.3.0
+          ffmpeg -version | head -n 1
+      - name: Validate only the selected video
+        run: npm run lint
+      - name: Render only this folder
+        run: npm run render
+      - name: Verify final MP4
+        run: |
+          test -s output.mp4
+          ffprobe -v error -show_entries stream=width,height,avg_frame_rate -show_entries format=duration -of default=noprint_wrappers=1 output.mp4
+          python - <<'PY'
+          import json, subprocess
+          p = subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=width,height,avg_frame_rate:format=duration','-of','json','output.mp4'])
+          d=json.loads(p)
+          v=d['streams'][0]
+          assert (v['width'],v['height']) == (1080,1920), v
+          assert 14.90 <= float(d['format']['duration']) <= 15.10, d
+          PY
+      - name: Upload this video's MP4 only
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-${{ matrix.folder }}-${{ github.run_number }}
+          path: videos/${{ matrix.folder }}/output.mp4
+          retention-days: 30
+          if-no-files-found: error

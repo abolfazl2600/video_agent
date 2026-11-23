@@ -1,17 +1,28 @@
-# Advertio Video Agent — Dark Tech TikTok
-Current composition lives in [بز](./%D8%A8%D8%B2/). It's a 15-second vertical aircraft video with a source-image opening, 3D runway motion, a cinematic dark technical HUD and readable Persian kinetic text.
-- Format: **1080×1920**, 30fps, H.264, 9:16, silent.
-- The repository already contains the original photo **بز/reference.jpg**. The video starts on that exact photo (cropped to 9:16) before transitioning to Three.js.
-- No synthetic replacement for the official Advertio logo is used.
-## Automated render
-Open **Actions → Render Advertio Dark Tech TikTok → Run workflow**. A push changing `بز/**` or the workflow also triggers the render. Download `advertio-dark-tech-tiktok` from the completed run's Artifacts section.
-## Local render
-```bash
-cd بز
-npm install
-python3 -m pip install Pillow==11.3.0
-npm run build
-npm run render
+# Advertio Video Agent
+
+This repository contains **independent, folder-scoped video projects**, so a change to one video never requires rebuilding every video.
+
+## Video projects
+
+- [Original dark-tech airplane film (`بز/`)](./%D8%A8%D8%B2/) — 15-second vertical Three.js flight film, rendered by the existing `render-tiktok.yml` workflow.
+- [3D isometric parcel-to-Iran ad (`videos/parcel-to-iran-isometric/`)](./videos/parcel-to-iran-isometric/) — four-scene, 15-second Persian passenger-cargo story. Output: 1080×1920 MP4.
+
+## Folder-based GitHub Actions
+
+Open **Actions → Render Advertio Video by Folder → Run workflow**. In the `folder` input enter a video project name **without `videos/`**, e.g. `parcel-to-iran-isometric`. The action validates the folder, installs dependencies only there, runs its `npm run lint` and `npm run render`, verifies `output.mp4`, and uploads **only that project's video**.
+
+When code in `videos/<folder>/**` is pushed, the workflow detects the changed folder(s) and renders **only those folder(s)** as separate matrix jobs. Jobs are isolated, including their dependencies, video output, artifact names and concurrency groups. Changes to the original `بز/**` continue to use its existing dedicated workflow.
+
+### Adding future videos
+
+Create a new folder `videos/<your-video-slug>/` with at least:
+
+```text
+videos/your-video-slug/
+  package.json     # scripts: lint and render
+  ...              # every asset needed to render this video
 ```
-Requires Node 22+, Python 3.12, FFmpeg. Video appears at `بز/flight-dark-tech-tiktok.mp4`. For a browser preview run `npx hyperframes preview`; the Python finishing stage produces the final video overlay, so HTML previews are a design/timing reference, not pixel-for-pixel identical.
-See [DESIGN.md](./%D8%A8%D8%B2/DESIGN.md) for style/timing details.
+
+The project's `render` command must produce `videos/<your-video-slug>/output.mp4` (1080×1920, 15 seconds). Each project may have its own scenes, dependencies and story. Changing one folder will not trigger a rebuild of the rest.
+
+**Brand assets:** Never AI-generate or redraw the Advertio logo. Use the original uploaded `Advertio Logo.png` for any designs that include the logo; plain text brand mentions are permitted.
