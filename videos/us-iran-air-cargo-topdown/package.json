@@ -1,0 +1,10 @@
+{
+  "name": "advertio-us-iran-air-cargo-topdown",
+  "private": true,
+  "description": "15-second vertical code-drawn US-Iran passenger air-cargo advert",
+  "scripts": {
+    "lint": "python3 -m py_compile film.py",
+    "samples": "python3 film.py --samples",
+    "render": "python3 film.py"
+  }
+}
