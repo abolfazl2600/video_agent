@@ -2,17 +2,12 @@
   "name": "advertio-mother-supplement-network",
   "private": true,
   "type": "module",
-  "description": "Standalone 15s vertical 3D isometric Advertio passenger cargo campaign",
+  "description": "Standalone 15-second orange-network isometric ad with deterministic fast raster rendering",
   "scripts": {
-    "lint": "node --check scene.mjs && node --check render.mjs && python3 -m py_compile finish.py",
-    "frames": "node render.mjs",
+    "lint": "python3 -m py_compile isometric.py finish.py",
+    "frames": "python3 isometric.py",
     "encode": "python3 finish.py",
     "render": "npm run frames && npm run encode",
-    "samples": "node render.mjs --samples && python3 finish.py --samples"
-  },
-  "dependencies": {
-    "linkedom": "^0.18.12",
-    "sharp": "^0.34.0",
-    "three": "^0.180.0"
+    "samples": "python3 isometric.py --samples && python3 finish.py --samples"
   }
 }
