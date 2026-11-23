@@ -1,150 +1,227 @@
-"""Fast deterministic isometric rasterization, avoiding SVGRenderer and floor occlusion.
-Outputs 720x1280 scene PNGs; finish.py adds Persian typography and encodes video.
+"""Advertio story film: original animated isometric miniatures.
+The reference informs clean ivory lighting, extruded paths, rounded geometry and
+limited accent color; four distinct visual scenes are independently animated.
 """
+from __future__ import annotations
 from pathlib import Path
-from PIL import Image, ImageDraw
+from functools import lru_cache
+from PIL import Image, ImageDraw, ImageFilter
 import math, os, sys
 
-ROOT=Path(__file__).resolve().parent
+P=Path(__file__).resolve().parent
 MODE=os.environ.get('ADVERTIO_RENDER_MODE','preview')
-if MODE not in ('preview','final'): raise ValueError(MODE)
+if MODE not in ('preview','final'):raise ValueError('render mode must be preview or final')
 FPS=10 if MODE=='preview' else 30
-TIMES=[0,1.5,3.5,4.5,6.5,8,9.5,11.5,13.5,14.9]
+N=15*FPS
 W,H=720,1280
-ORANGE=(245,102,42); LIGHT=(255,146,79); DARK=(213,75,29)
-INK=(32,33,36); WHITE=(250,250,247)
-POINTS={'sender':(130,651),'package':(300,797),'hub':(400,691),
-        'traveler':(562,858),'mother':(390,994),'phone':(139,969),'supplement':(590,657)}
-PATHS=[[(130,651),(237,735),(300,797)],
-       [(300,797),(319,761),(400,691)],
-       [(400,691),(480,751),(480,796),(562,858)],
-       [(400,691),(490,618),(590,657)],
-       [(139,969),(240,899),(300,797)],
-       [(300,797),(337,925),(390,994)]]
+TIMES=[.5,1.6,3.3,4.4,6.2,7.5,9.5,11.4,13.1,14.7]
+IVORY='#F8F8F5';INK='#263645';ORANGE='#F2753D';DARK_ORANGE='#C95529'
+BLUE='#668EA5';PALE_BLUE='#C7DBE1';TEAL='#6EAFA4';PINK='#D79C9B'
+BONE='#E8E8E4';WHITE='#FFFFFF';GOLD='#E8C49B'
 
-def lerp(a,b,t):return a+(b-a)*t
-def ease(t):t=max(0,min(1,t));return t*t*(3-2*t)
-def ellipse(draw,rect,fill,outline=None,width=1):draw.ellipse(tuple(map(int,rect)),fill,outline,width)
-def poly(draw,points,fill):draw.polygon([(round(x),round(y)) for x,y in points],fill=fill)
+def E(v):
+    v=max(0.,min(1.,v));return v*v*(3-2*v)
+def mix(a,b,v):return a+(b-a)*v
+def poly(d,pts,fill):d.polygon([(round(x),round(y)) for x,y in pts],fill=fill)
+def ell(d,xy,fill,outline=None,width=1):d.ellipse(tuple(round(v) for v in xy),fill=fill,outline=outline,width=width)
+def rounded(d,xy,r,fill,outline=None,width=1):d.rounded_rectangle(tuple(round(v) for v in xy),radius=round(r),fill=fill,outline=outline,width=width)
+def iso_slab(d,x,y,w,h,thick=20,top='#FFFFFF',left='#D8E1E1',right='#CBD5D7'):
+    pts=[(x,y-h/2),(x+w/2,y),(x,y+h/2),(x-w/2,y)]
+    a,b,c,dd=pts
+    poly(d,[dd,c,(c[0],c[1]+thick),(dd[0],dd[1]+thick)],left)
+    poly(d,[c,b,(b[0],b[1]+thick),(c[0],c[1]+thick)],right)
+    poly(d,pts,top)
+    return pts
+def shadow(d,x,y,rx=100,ry=26):ell(d,(x-rx,y-ry,x+rx,y+ry),'#E0E4E3')
+def rod(d,coords,width=17,color=ORANGE):
+    d.line([(round(x+2),round(y+8)) for x,y in coords],fill='#E8E2DE',width=width+4,joint='curve')
+    d.line([(round(x),round(y+5)) for x,y in coords],fill=DARK_ORANGE,width=width,joint='curve')
+    d.line([(round(x),round(y)) for x,y in coords],fill=color,width=width,joint='curve')
+    for x,y in coords:ell(d,(x-width/2,y-width/2,x+width/2,y+width/2),color)
+def person(d,x,y,scale=1.,shirt=BLUE,hair=INK,skin='#DBAD8D',mood='neutral',wave=0.,legs=True):
+    s=scale
+    if legs:
+        shadow(d,x,y+8*s,32*s,11*s)
+        d.line((x-11*s,y-53*s,x-15*s,y-14*s),fill='#53606C',width=max(1,round(13*s)))
+        d.line((x+12*s,y-52*s,x+14*s,y-14*s),fill='#53606C',width=max(1,round(13*s)))
+        rounded(d,(x-26*s,y-16*s,x-10*s,y-5*s),5*s,'#3D4851')
+        rounded(d,(x+7*s,y-16*s,x+25*s,y-5*s),5*s,'#3D4851')
+    d.line((x-24*s,y-91*s,x-38*s,y-51*s),fill=shirt,width=max(1,round(13*s)))
+    d.line((x+24*s,y-90*s,x+(37+12*wave)*s,y-(54+26*wave)*s),fill=shirt,width=max(1,round(13*s)))
+    ell(d,(x-44*s,y-55*s,x-32*s,y-43*s),skin)
+    ell(d,(x+(31+12*wave)*s,y-(61+26*wave)*s,x+(44+12*wave)*s,y-(47+26*wave)*s),skin)
+    rounded(d,(x-28*s,y-102*s,x+28*s,y-49*s),18*s,shirt)
+    rounded(d,(x-7*s,y-111*s,x+7*s,y-95*s),4*s,skin)
+    ell(d,(x-30*s,y-163*s,x+30*s,y-107*s),skin)
+    ell(d,(x-29*s,y-167*s,x+26*s,y-141*s),hair)
+    ell(d,(x-30*s,y-158*s,x-19*s,y-121*s),hair)
+    if mood in ('concerned','happy'):
+        eyec='#283947'
+        for dx in (-10,11):ell(d,(x+(dx-1.8)*s,y-135*s,x+(dx+1.8)*s,y-131*s),eyec)
+        if mood=='happy':d.arc((x-10*s,y-130*s,x+12*s,y-117*s),0,170,fill='#8D514A',width=max(1,round(2*s)))
+        else:d.arc((x-9*s,y-124*s,x+10*s,y-112*s),180,345,fill='#8D514A',width=max(1,round(2*s)))
+def bottle(d,x,y,s=1.,lift=0):
+    y-=lift;s=float(s)
+    shadow(d,x,y+8*s,35*s,11*s)
+    rounded(d,(x-34*s,y-79*s,x+34*s,y-10*s),13*s,'#E8F0F0',outline='#B9CBCB',width=max(1,round(2*s)))
+    rounded(d,(x-31*s,y-60*s,x+31*s,y-22*s),8*s,WHITE)
+    rounded(d,(x-9*s,y-54*s,x+9*s,y-30*s),2*s,'#B9D7D6')
+    rounded(d,(x-3*s,y-59*s,x+3*s,y-24*s),1*s,TEAL)
+    rounded(d,(x-15*s,y-46*s,x+15*s,y-37*s),1*s,TEAL)
+    rounded(d,(x-27*s,y-92*s,x+27*s,y-73*s),6*s,'#D9E3E4')
+    rounded(d,(x-21*s,y-98*s,x+21*s,y-90*s),4*s,WHITE)
+def package(d,x,y,s=1.,open_lid=0.,ribbon=False):
+    shadow(d,x,y+54*s,54*s,14*s)
+    tw=66*s;ty=26*s;h=67*s
+    a=(x,y-ty);b=(x+tw,y);c=(x,y+ty);dd=(x-tw,y)
+    poly(d,[dd,c,(c[0],c[1]+h),(dd[0],dd[1]+h)],'#CEAA82')
+    poly(d,[c,b,(b[0],b[1]+h),(c[0],c[1]+h)],'#B98760')
+    poly(d,[a,dd,c,b],'#EBC9A1')
+    if open_lid>0:
+        lift=E(open_lid)*33*s
+        poly(d,[(x,y-ty-lift),(x+tw,y-lift),(x,y+ty-lift),(x-tw,y-lift)],'#F3D9B5')
+    if ribbon:rod(d,[(x-23*s,y-9*s),(x,y+ty),(x+22*s,y+9*s)],max(2,round(8*s)),'#FBF7EC')
+def table(d,x,y,w=370,h=135):
+    shadow(d,x+9,y+65,w*.52,33)
+    iso_slab(d,x,y,w,h,31,'#F1F2EE','#E5E7E2','#D9DFDD')
+    for side in (-1,1):
+        px=x+side*w*.30
+        rounded(d,(px-9,y+70,px+10,y+135),6,'#DDE0DB')
+def suitcase(d,x,y,s=.8):
+    shadow(d,x,y+15*s,32*s,10*s)
+    rounded(d,(x-27*s,y-69*s,x+27*s,y+12*s),10*s,'#7EA6AC')
+    rounded(d,(x-14*s,y-87*s,x+14*s,y-67*s),6*s,outline='#4B6B76',fill=WHITE,width=max(2,round(4*s)))
+    d.line((x,y-62*s,x,y+4*s),fill='#B1D4D0',width=max(2,round(3*s)))
+    for dx in (-16,16):ell(d,(x+(dx-5)*s,y+8*s,x+(dx+5)*s,y+18*s),'#33464F')
+def phone(d,x,y,s=1.,scroll=0,matched=False):
+    w,h=254*s,430*s
+    shadow(d,x+10,y+h*.47,130*s,20*s)
+    rounded(d,(x-w/2-8*s,y-h/2-9*s,x+w/2+8*s,y+h/2+9*s),30*s,'#263747')
+    rounded(d,(x-w/2,y-h/2,x+w/2,y+h/2),24*s,WHITE)
+    rounded(d,(x-30*s,y-h/2+8*s,x+30*s,y-h/2+16*s),5*s,'#263747')
+    rounded(d,(x-w/2+10*s,y-h/2+36*s,x+w/2-10*s,y-h/2+95*s),12*s,TEAL)
+    d.ellipse((x-84*s,y-h/2+58*s,x-74*s,y-h/2+68*s),fill=WHITE)
+    d.line((x-70*s,y-h/2+63*s,x+73*s,y-h/2+63*s),fill=WHITE,width=max(2,round(3*s)))
+    d.ellipse((x+74*s,y-h/2+58*s,x+84*s,y-h/2+68*s),fill=WHITE)
+    for i in range(3):
+        yy=y-h/2+(113+i*87-scroll)*s
+        if yy<y-h/2+96*s or yy>y+h/2-70*s:continue
+        highlight=matched and i==1
+        rounded(d,(x-108*s,yy,x+109*s,yy+74*s),11*s,'#E3F2EF' if highlight else '#F2F4F2',outline='#8AC8B7' if highlight else '#E5E9E8',width=max(1,round(2*s)))
+        ell(d,(x-96*s,yy+15*s,x-60*s,yy+51*s),'#B9D5E1' if i!=1 else '#C5D7CA')
+        rounded(d,(x-47*s,yy+16*s,x+78*s,yy+22*s),3*s,'#94A6AD')
+        rounded(d,(x-47*s,yy+31*s,x+31*s,yy+36*s),3*s,'#BBC8CA')
+        rounded(d,(x+58*s,yy+51*s,x+93*s,yy+59*s),4*s,ORANGE if highlight else '#A0C8C4')
+    rounded(d,(x-99*s,y+h/2-55*s,x+99*s,y+h/2-19*s),14*s,ORANGE)
+def plane(d,x,y,s=1.,angle=0.):
+    p=[(-37,0),(23,-8),(13,-27),(26,-21),(45,-2),(24,7),(18,26),(10,23),(13,7)]
+    co=math.cos(angle);si=math.sin(angle)
+    coords=[(x+(u*co-v*si)*s,y+(u*si+v*co)*s) for u,v in p]
+    poly(d,coords,WHITE)
+    d.line((x-18*s,y,x+24*s,y),fill='#6E9EAE',width=max(2,round(3*s)))
+def draw_room(d,t):
+    shadow(d,360,1000,287,36)
+    iso_slab(d,355,896,560,206,42,'#F0F3F1','#DCE3E0','#D8DFDE')
+    rounded(d,(110,587,260,672),18,'#EAF1F0')
+    d.line((143,659,143,610,231,610),fill='#B8CDD0',width=6)
+    ell(d,(181,586,232,613),'#C9DDE1')
+    card_x=mix(900,432,E(t/.74)); card_y=581+8*math.sin(t*.9)
+    shadow(d,card_x+4,815,122,18)
+    rounded(d,(card_x-127,card_y-83,card_x+127,card_y+210),25,WHITE,outline='#C7D6D8',width=4)
+    rounded(d,(card_x-117,card_y-72,card_x+117,card_y-15),15,'#E6F1F2')
+    ell(d,(card_x-87,card_y-38,card_x-73,card_y-24),TEAL)
+    rounded(d,(card_x-81,card_y+4,card_x+84,card_y+168),19,'#F6F7F2')
+    person(d,card_x,card_y+164,.79,PINK,'#7A6362','#D2A18A',mood='concerned',legs=False)
+    ell(d,(card_x+78,card_y-64,card_x+94,card_y-48),ORANGE)
+    person(d,210,1017,1.28,BLUE,INK,'#D8A98E',mood='concerned',wave=.07*math.sin(2*t))
+    bottle(d,326,955,.92,lift=11*math.sin(t*2.7))
+    for j in range(4):
+        rr=5+3*math.sin(t*2+j)
+        x=370+j*13;y=803+j*7
+        ell(d,(x-rr,y-rr,x+rr,y+rr),'#EFCBB7')
+def draw_pack(d,t):
+    u=t-3.8
+    table(d,350,900,570,250)
+    package(d,355,830,1.25,open_lid=max(.25,1-E((u-1)/1.9)))
+    bby=mix(670,802,E((u-.2)/1.8))
+    bottle(d,350,bby,1.0)
+    d.arc((143,480,571,730),200,336,fill='#D3DFE0',width=4)
+    rod(d,[(154,640),(214,621),(275,615),(335,632),(390,613),(463,586),(552,586)],9,'#E8B69B')
+    prog=E((u-.3)/2.7)
+    xs=154+398*prog
+    py=640-60*prog+18*math.sin(prog*math.pi*1.5)
+    plane(d,xs,py,.76,angle=-.12)
+    iso_slab(d,145,672,119,55,12,'#D3E2E3','#C5D8D8','#BED0D2')
+    iso_slab(d,565,635,122,55,12,'#D3E2E3','#C5D8D8','#BED0D2')
+    if u>1.5:
+        rounded(d,(297,813,413,819),3,'#F3C99D')
+    rounded(d,(115,1040,250,1076),14,WHITE,outline='#DAE6E5',width=2)
+    rounded(d,(476,1040,614,1076),14,WHITE,outline='#DAE6E5',width=2)
+def draw_matching(d,t):
+    u=t-7
+    shadow(d,336,1050,255,32)
+    iso_slab(d,341,995,500,225,30,'#F1F2F0','#DDE5E2','#D7E0DE')
+    scale=1.04+0.025*math.sin(u*2)
+    phone(d,330,745,scale,scroll=12*E((u-.3)/2),matched=u>1.7)
+    person(d,560,1005,.92,'#E7AE80','#4A5861','#D7A98F',mood='happy',wave=E((u-1.9)/.6))
+    suitcase(d,618,1000,.88)
+    appear=E((u-1.65)/.52)
+    if appear>0:
+        xx=mix(690,515,appear); yy=548-8*math.sin(u*2)
+        rounded(d,(xx-52,yy-34,xx+60,yy+32),21,WHITE,outline='#BAD9D4',width=3)
+        ell(d,(xx-28,yy-5,xx-17,yy+6),TEAL)
+        ell(d,(xx-5,yy-5,xx+6,yy+6),TEAL)
+        ell(d,(xx+18,yy-5,xx+29,yy+6),TEAL)
+        poly(d,[(xx+10,yy+27),(xx+2,yy+44),(xx-12,yy+28)],WHITE)
+    if u>2.4:
+        ell(d,(465,605,479,619),ORANGE)
+        ell(d,(474,613,482,621),WHITE)
+def draw_finale(d,t):
+    u=t-11
+    shadow(d,364,1010,292,34)
+    iso_slab(d,359,908,584,207,44,'#F1F4F0','#D7E2DC','#D3DDDA')
+    person(d,475,1000,1.19,PINK,'#686166','#D7AE91',mood='happy',wave=E((u-.4)/.75))
+    p_x=mix(100,322,E((u-.2)/1.7));p_y=mix(950,916,E((u-.2)/1.7))
+    package(d,p_x,p_y,.79,ribbon=True)
+    if u>1.15:
+        a=E((u-1.15)/.6)
+        cx,cy=390,645
+        ell(d,(cx-46*a,cy-46*a,cx+46*a,cy+46*a),'#D5EEE7')
+        ell(d,(cx-30*a,cy-30*a,cx+30*a,cy+30*a),TEAL)
+        d.line((cx-16*a,cy,cx-3*a,cy+13*a,cx+22*a,cy-15*a),fill=WHITE,width=max(1,round(7*a)),joint='curve')
+        for j in range(9):
+            ang=j*2.399+u*.6
+            xx=390+108*math.cos(ang);yy=676+99*math.sin(ang)-(u-1.15)*16
+            r=3+(j%3)*1.6
+            ell(d,(xx-r,yy-r,xx+r,yy+r),ORANGE if j%3==0 else '#D4DAD4')
+    for j in range(4):
+        ex=125+j*20;ey=672+j*16
+        ell(d,(ex-8,ey-8,ex+8,ey+8),('#D7E2E1' if j%2 else ORANGE))
+@lru_cache(maxsize=1)
 def bg():
-    img=Image.new('RGB',(W,H),(249,249,247))
-    pix=img.load()
-    for y in range(430,1091):
-        for x in range(W):
-            r=((x-352)/475)**2+((y-754)/430)**2
-            shade=min(1.0,r)
-            a=round(244+5*shade)
-            pix[x,y]=(a,a,round(a-1))
-    d=ImageDraw.Draw(img)
-    ellipse(d,(44,615,678,1060),(239,240,237))
-    ellipse(d,(68,638,657,1037),(245,245,243))
-    for x,y in [(90,825),(617,742),(475,1071),(223,568)]:
-        ellipse(d,(x-4,y-4,x+4,y+4),(209,211,207))
-    return img
-def stroke(d,pts,color,width):
-    d.line(pts,fill=color,width=width,joint='curve')
-    r=width//2
-    for x,y in pts:ellipse(d,(x-r,y-r,x+r,y+r),color)
-def path(d,pts):
-    shadow=[(x+4,y+12) for x,y in pts]
-    stroke(d,shadow,(211,207,200),31)
-    stroke(d,[(x,y+8) for x,y in pts],DARK,30)
-    stroke(d,pts,ORANGE,29)
-    stroke(d,[(x-1,y-3) for x,y in pts],LIGHT,7)
-def platform(d,x,y,color='black',scale=1):
-    rx=47*scale; ry=24*scale; height=48*scale
-    top=(x,y-7*scale);left=(x-rx,y+ry-7*scale)
-    right=(x+rx,y+ry-7*scale);bottom=(x,y+2*ry-7*scale)
-    drop=height
-    poly(d,[(left[0]+5,left[1]+9),(bottom[0]+6,bottom[1]+10),
-            (right[0]+6,right[1]+9),(right[0]+6,right[1]+drop+11),
-            (bottom[0]+6,bottom[1]+drop+10),(left[0]+5,left[1]+drop+10)],(221,222,217))
-    if color=='black':topc,leftc,rightc=(45,46,50),(22,23,27),(31,32,36)
-    else:topc,leftc,rightc=(252,252,250),(219,221,217),(236,237,233)
-    poly(d,[left,bottom,(bottom[0],bottom[1]+drop),(left[0],left[1]+drop)],leftc)
-    poly(d,[bottom,right,(right[0],right[1]+drop),(bottom[0],bottom[1]+drop)],rightc)
-    poly(d,[top,left,bottom,right],topc)
-    return (x,y+10*scale)
-def pawn(d,x,y,color='black',scale=1):
-    black=color=='black'
-    base=(27,28,32) if black else (246,247,244)
-    highlight=(56,57,61) if black else (255,255,253)
-    dark=(14,15,17) if black else (211,214,209)
-    def box(k):return tuple(round(v) for v in k)
-    ellipse(d,box((x-25*scale,y-3*scale,x+25*scale,y+16*scale)),dark)
-    poly(d,[(x-20*scale,y+3*scale),(x-17*scale,y-39*scale),
-            (x+13*scale,y-39*scale),(x+22*scale,y+3*scale)],base)
-    ellipse(d,box((x-20*scale,y-48*scale,x+19*scale,y-15*scale)),base)
-    ellipse(d,box((x-19*scale,y-82*scale,x+17*scale,y-46*scale)),highlight)
-    ellipse(d,box((x-15*scale,y-80*scale,x+13*scale,y-51*scale)),base)
-    ellipse(d,box((x-9*scale,y-76*scale,x-4*scale,y-71*scale)),
-            (99,99,100) if black else (255,255,255))
-def station(d,key,color='black',scale=1):
-    x,y=POINTS[key];platform(d,x,y,color,scale)
-    pawn(d,x,y-15*scale,color,scale)
-def parcel(d):
-    x,y=POINTS['package'];platform(d,x,y,'white',.88)
-    w=45;z=y-23
-    poly(d,[(x,z-52),(x+w,z-31),(x,z-7),(x-w,z-31)],(235,204,166))
-    poly(d,[(x-w,z-31),(x,z-7),(x,z+38),(x-w,z+15)],(198,147,100))
-    poly(d,[(x,z-7),(x+w,z-31),(x+w,z+15),(x,z+38)],(223,174,124))
-    poly(d,[(x-5,z-49),(x+7,z-43),(x+7,z+1),(x-5,z-6)],(250,230,193))
-def bottle(d):
-    x,y=POINTS['supplement']
-    ellipse(d,(x-53,y+29,x+55,y+54),(218,221,218))
-    poly(d,[(x-28,y+20),(x-31,y-43),(x-21,y-52),(x+21,y-52),
-            (x+31,y-43),(x+28,y+20)],(237,240,237))
-    ellipse(d,(x-30,y+12,x+30,y+31),(214,220,217))
-    poly(d,[(x-32,y-38),(x+32,y-38),(x+30,y+7),(x-30,y+7)],(251,252,249))
-    ellipse(d,(x-22,y-68,x+22,y-48),(215,221,219))
-    poly(d,[(x-22,y-68),(x+22,y-68),(x+22,y-57),(x-22,y-57)],(246,247,245))
-    ellipse(d,(x-21,y-74,x+21,y-64),(253,253,250))
-    d.rounded_rectangle((x-22,y-24,x+22,y+10),radius=4,fill=(226,241,243))
-    d.rectangle((x-4,y-19,x+4,y+5),fill=(99,159,169))
-    d.rectangle((x-12,y-11,x+12,y-3),fill=(99,159,169))
-def phone(d):
-    x,y=POINTS['phone'];platform(d,x,y,'black',.85)
-    poly(d,[(x-29,y-100),(x+23,y-92),(x+23,y-8),(x-29,y-17)],(31,33,36))
-    poly(d,[(x-23,y-91),(x+17,y-85),(x+17,y-19),(x-23,y-25)],(250,251,248))
-    d.line((x-15,y-77,x+8,y-73),fill=ORANGE,width=5)
-    for q in range(3):
-        cy=y-62+q*14
-        d.rounded_rectangle((x-14,cy,x+11,cy+5),radius=2,fill=(201,212,210))
-    d.line((x-28,y-97,x+23,y-90),fill=(83,85,88),width=2)
-def accents(d,t):
-    if ease(t*.9)<.1:return
-    for x,y in [(192,575),(550,971),(262,1064),(621,780)]:
-        d.line((x,y,x+22,y+11),fill=ORANGE,width=5)
-        d.line((x+29,y+15,x+47,y+24),fill=INK,width=5)
-    for x,y in [(90,758),(625,1009),(468,558)]:
-        ellipse(d,(x-5,y-5,x+5,y+5),(224,226,222))
-        ellipse(d,(x-2,y-2,x+2,y+2),(247,247,245))
+    im=Image.new('RGB',(W,H),IVORY)
+    wash=Image.new('RGBA',(W,H),(0,0,0,0))
+    d=ImageDraw.Draw(wash)
+    ell(d,(0,470,720,1140),(198,211,209,28))
+    ell(d,(110,485,670,1050),(231,235,232,73))
+    wash=wash.filter(ImageFilter.GaussianBlur(52))
+    im=Image.alpha_composite(im.convert('RGBA'),wash).convert('RGB')
+    return im
 def make_frame(t):
-    im=bg();d=ImageDraw.Draw(im)
-    # Connected tracks remain visible in every beat; no occluded SVG triangles.
-    for p in PATHS:path(d,p)
-    path_id=0 if t<4 else 2 if t<7 else 4 if t<11 else 5
-    pts=PATHS[path_id];ratio=(t%3.8)/3.8
-    edges=[math.hypot(x1-x0,y1-y0) for (x0,y0),(x1,y1) in zip(pts,pts[1:])]
-    target=ratio*sum(edges)
-    for i,length in enumerate(edges):
-        if target<=length:
-            q=target/length;x=lerp(pts[i][0],pts[i+1][0],q)
-            y=lerp(pts[i][1],pts[i+1][1],q);break
-        target-=length
-    ellipse(d,(x-14,y-15,x+14,y+13),(255,254,251))
-    accents(d,t)
-    station(d,'sender','black',.98)
-    station(d,'hub','black',.88)
-    parcel(d);bottle(d)
-    station(d,'traveler','black',.82)
-    station(d,'mother','white',.84)
-    phone(d)
+    if t<0 or t>15:raise ValueError(t)
+    im=bg().copy();d=ImageDraw.Draw(im)
+    d.line((52,474,145,474),fill='#DADFDA',width=3)
+    ell(d,(156,469,165,478),ORANGE)
+    d.line((568,1097,654,1097),fill='#DADFDA',width=3)
+    if t<3.8:draw_room(d,t)
+    elif t<7:draw_pack(d,t)
+    elif t<11:draw_matching(d,t)
+    else:draw_finale(d,t)
     return im
 def render():
-    folder=ROOT/'frames';folder.mkdir(exist_ok=True)
-    indices=sorted(set(min(15*FPS-1,round(t*FPS)) for t in TIMES)) if '--samples' in sys.argv else range(15*FPS)
-    for i in indices:
-        make_frame(i/FPS).save(folder/f'{i:04d}.png',optimize=True)
-        if i%25==0:print('Rendered isometric frame',i,'/',15*FPS,flush=True)
+    out=P/'frames';out.mkdir(exist_ok=True)
+    idx=sorted(set(min(N-1,round(x*FPS)) for x in TIMES)) if '--samples' in sys.argv else range(N)
+    for i in idx:
+        make_frame(i/FPS).save(out/f'{i:04d}.png')
+        if i%30==0:print(f'Rendered scene frame {i}/{N}',flush=True)
 if __name__=='__main__':render()

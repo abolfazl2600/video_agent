@@ -1,34 +1,29 @@
-# Advertio — Supplement Delivery Network (15-second 3D Isometric)
-A dedicated folder-scoped vertical campaign. **New branch:** `feature/mother-supplement-network-isometric`.
+# Advertio — Mother & Supplement / Original Animated Story
+An independently renderable **15-second vertical Persian advertising video** in `videos/mother-supplement-network/`.
 
-## Storyboard
-| Time | Visual beat | Persian copy |
-|---|---|---|
-| 00:00–00:04 | Mother in Iran and package node appear; network's orange first line lights up. | «مامانت توی ایرانه و حالش خوب نیست؟ یه مکمل لازم داره؟» |
-| 00:04–00:07 | Package connects to traveler node across branching paths. | «می‌خوای از خارج کشور به ایران برسونیش؟ مسافر مسیر ایران رو پیدا کن.» |
-| 00:07–00:11 | Isometric Advertio phone connects the sender, traveler and mother. | «توی ادورتیو آگهی بذار؛ به مسافرها وصل شو؛ مستقیم گفت‌وگو کن.» |
-| 00:11–00:15 | Network expands around phone and destination; numerical proof and CTA dominate. | «بیش از ۱۱٬۰۰۰ آگهی حمل بار و مسافر در ادورتیو منتشر شده» / advertio.net |
+## Creative direction
+The original orange/black/white reference provided **only art direction**, not a literal layout. This implementation does **not** copy its connected chess pawns or the entire abstract network. It instead uses four distinct original, soft isometric miniature environments with off-white studio backgrounds, rounded clay geometry, restrained orange accents, gentle shadows, and prominent Persian editorial typography.
 
-## Visual direction
-Orthographic-looking miniature-3D arrangement on ivory background: black/white pawn-like human markers, extruded bright orange branching connectors, tactile black/white square stations, matte bottle and packet nodes, soft neutral shadows, tiny orange and black diagram accents, high-contrast oversized editorial Persian typography. Inspired by the attached conceptual reference; reference image pixels and its copyrighted headline are **not reused**. The original low-poly isometric aesthetic is now drawn with deterministic layered raster geometry in Pillow, avoiding the large SVGRenderer floor polygons that hid connections.
+## Story & actual on-screen animation
 
-## Render choices
-- `npm run samples`: **Quick Preview**, 10 representative 720×1280 JPGs and `quick-preview-contact-sheet.jpg`; no MP4. Default for folder changes.
-- `npm run render`: **Preview MP4**, 540×960, 10 fps, 15 s.
-- `ADVERTIO_RENDER_MODE=final npm run render`: **Final MP4**, 1080×1920, 30 fps, 15 s, only on explicit selection.
-- `npm run lint`: validates both Python render and finishing scripts.
-- Node 22+, Python 3.12, Pillow 11.3 (with libraqm for Persian RTL), FFmpeg for MP4.
-- Shared original Vazirmatn font files: `../../assets/fonts`.
-- No generated logo. If an official Advertio logo is ever included, only the original supplied file may be used.
-- Video is silent; voice/narration is currently represented by on-screen Persian copy.
+| Time | Story / copy | Animated visual action |
+| --- | --- | --- |
+| 0–3.8s | «مامانت توی ایران حالش خوب نیست؟ یه مکمل خوب لازم داره؟» | A concerned daughter in Canada, an incoming video-call card with her mother, a levitating supplement jar, and subtle communication pulses |
+| 3.8–7s | «مکمل رو تهیه کردی... چطور به ایران برسونیش؟» | Close-up miniature packing: the jar descends toward an isometric parcel, its lid moves, and an animated airplane travels from Canada toward Iran |
+| 7–11s | «توی ادورتیو مسافر مسیر ایران رو پیدا کن!» | Large fictional Advertio listing phone: listing cards, scrolling/selection highlight, the traveler with a suitcase, and a new chat-response bubble |
+| 11–15s | «بیش از ۱۱٬۰۰۰ آگهی حمل بار و مسافر در ادورتیو منتشر شده» | The mother smiles and waves, the parcel enters, a confirmation checkmark pulses, and the 11,000 figure counts up |
 
-## Manual GitHub Actions
-Actions → **Render Advertio Video — Select Folder and Quality** → Run workflow → choose this branch → `folder=custom`, `custom_folder=mother-supplement-network`, `mode=quick-preview` (or `preview`/`final`). Folder-scoped push renders Quick Preview automatically; all outputs remain in this folder's job/artifact.
+**Product accuracy:** Advertio is a platform for connecting users and travelers, not the carrier. Visual arrival is an illustrative outcome rather than a guarantee. Any shipment of supplements remains subject to relevant airline, carrier and customs rules. The 11,000+ claim comes from supplied campaign copy and should be verified before public posting.
 
-**Important:** Advertio connects users with travelers; it is not itself the carrier or provider of supplements. Any supplement must be permitted by airline, customs and carrier policies. «۱۱٬۰۰۰+» is marketing copy supplied for this campaign and should be verified against live platform data before publication.
+## Implementation
+- **`isometric.py`**: 2.5D isometric scene geometry, full-body clay characters, matte materials, simple architectural perspective, eased positional animation, scene-specific movement. Efficient Pillow renderer—no SVGRenderer polygon occlusion.
+- **`finish.py`**: staggered Persian RTL typography, 11,000 count-up, 10-frame contact sheet, and FFmpeg H.264 video encoding.
+- **`package.json`**: `npm run lint`, `npm run samples`, `npm run render`. No per-folder JS dependencies.
+- Official shared `assets/fonts/Vazirmatn-Regular.ttf` and `Vazirmatn-Bold.ttf` are used in GitHub Actions. No generated/modified Advertio logo (plain text brand name only).
 
-### Execution trigger
-A change to this folder launches the GitHub Actions folder-scoped **Quick Preview** and uploads a contact sheet plus ten sample JPGs; the workflow change and the story have both been committed on this branch.
+## Preview
+Quick Preview is the folder-scoped **automatic action on pushes**. It generates 10 portrait JPGs, 720×1280, and a `quick-preview-contact-sheet.jpg`. Manual run: Actions → **Render Advertio Video — Select Folder and Quality** → branch `feature/mother-supplement-network-isometric` → `folder=custom` → `custom_folder=mother-supplement-network` → `mode=quick-preview`.
 
-## Fix: background visibility and render stability
-The first prototype obscured the isometric scene with a near-opaque footer panel starting at y=895, and used oversized SVGRenderer floor polygons that could partially cover small models. The rendering pipeline now uses a deterministic Pillow isometric scene with correctly depth-ordered extruded paths and figures, no occluding floor, and reserves y=430–1080 for graphics. The full branched network is visible and animated highlights travel along the routes. Quick Preview requires no Node 3D dependencies and runs just the 10 chosen frames.
+Preview MP4: 540×960, 10fps, 15s, silent (`ADVERTIO_RENDER_MODE=preview npm run render`); final MP4: 1080×1920, 30fps, 15s, silent (`ADVERTIO_RENDER_MODE=final npm run render`), manual only.
+
+Dependencies: Node 22 for the workflow wrapper, Python 3.12 + Pillow 11.3.0 with libraqm shaping, and FFmpeg for MP4. Animation and RTL typography use deterministic per-frame time (no audio/voice).
