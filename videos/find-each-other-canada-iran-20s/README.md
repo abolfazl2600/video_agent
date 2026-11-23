@@ -1,39 +1,43 @@
-# Advertio — فقط باید همدیگه رو پیدا کنن!
+# Advertio / «فقط باید همدیگه رو پیدا کنن!» — 20s motion ad
 
-**Project status:** storyboards and visual direction. This folder is intentionally **not runnable** yet. Video implementation will be added after selecting/revising the storyboard frames.
+A self-contained short-form 9:16 advertising video project using five isometric scene keyframes and **nine transparent Persian WEBP typography assets**.
 
-**Branch:** `feature/find-each-other-canada-iran-20s`
-**Duration:** 20 seconds
-**Format:** 9:16 Instagram Reels / Stories
-**Style:** very small, restrained 3D isometric / miniature diorama, modeled after the user-provided deep navy canvas and yellow airplane reference.
-**Video modes:** Preview 10 fps first; 30 fps Final only with explicit request.
+## Repository assets
 
-## Five scenes
+- `assets/storyboard_frames/` — 5 optimized 540×960 WEBP scene backdrops (derived from the supplied original scene images).
+- `assets/typography/` — 9 WEBP caption plates with transparency, kept independent so each can be animated.
+- `render.py` — deterministic FFmpeg motion renderer, zoom + separate fade-in/out for each typography layer.
+- `package.json` — folder-scoped `lint`, `render` and `samples` targets for GitHub Actions.
+- The official Advertio logo is **not regenerated or traced**. There is no generated logo in this project. If one is introduced later, the only permitted asset is the original `Advertio Logo.png` uploaded by the owner.
 
-| Time | Name | Voiceover and on-screen copy | Reference frame |
-|---|---|---|---|
-| 0–3s | Hook: Canada sender and parcel | Narration: «این بسته باید بره ایران... ولی چه طوری بفرستم؟!» / Caption: «یه بسته، ۱۰ هزار کیلومتر فاصله!» | `01_hook_canada.png` |
-| 3–7s | Surprise: airport traveler | Narration: «اون طرف، یکی همین هفته داره می‌ره ایران!» / Caption: «فقط هنوز همدیگه رو پیدا نکردن!» | `02_airport_traveler.png` |
-| 7–11s | Advertio introduction | Narration: «اینجاست که ادورتیو وارد می‌شه!» / Caption: «آگهی بذار، مسافر پیدا کن.» | `03_advertio_entry.png` |
-| 11–16s | The match | Passenger message: «من جمعه می‌رم تهران، می‌تونم بسته‌ات رو ببرم!» | `04_connection_message.png` |
-| 16–20s | Yellow aircraft + CTA | «بار داری؟ مسافرت رو پیدا کن!» / `Advertio.net | ارسال بار مسافری` | `05_plane_cta.png` |
+## Timing (20 seconds)
 
-## Assets and import
+| Sec | Action | Foreground typography |
+| --- | --- | --- |
+| 0–3 | Girl in Canada + parcel, slow push toward parcel | «این بسته باید بره ایران... ولی چه طوری بفرستم؟!» / «یه بسته، ۱۰ هزار کیلومتر فاصله!» |
+| 3–7 | Passenger packing suitcase in airport | «اون طرف، یکی همین هفته داره می‌ره ایران!» / «فقط هنوز همدیگه رو پیدا نکردن!» |
+| 7–11 | Advertio illustrated mockup, Canada and Iran connected | «اینجاست که ادورتیو وارد می‌شه!» / «آگهی بذار، مسافر پیدا کن.» |
+| 11–16 | Matching + passenger chat message | «من جمعه می‌رم تهران، می‌تونم بسته‌ات رو ببرم!» |
+| 16–20 | Yellow airplane with phone, CTA | «بار داری؟ مسافرت رو پیدا کن!» / `Advertio.net | ارسال بار مسافری` |
 
-Five 9:16 storyboard images were created for this project and delivered separately as a downloadable ZIP in the corresponding ChatGPT conversation. The generated binary frames are **not yet committed to GitHub**. After retrieving the storyboard package, place PNG assets inside `assets/storyboard_frames/` using the helper `import_storyboard_images.sh`; review the imported image files and commit them on this branch.
+The visuals are **stylized keyframes with animated camera/caption effects**, not yet rigged or fully reconstructed 3D characters. This preview has no audio voiceover; the narration is represented by readable animated text.
+
+## Render modes
 
 ```bash
-cd videos/find-each-other-canada-iran-20s
-bash import_storyboard_images.sh /path/to/unzipped/storyboard_frames
-git add assets/storyboard_frames
-git commit -m "assets(video): add approved five-scene storyboard images"
+# Run inside this folder, not the repository root.
+python3 -m pip install Pillow==11.3.0  # FFmpeg must already be installed
+npm run lint
+ADVERTIO_RENDER_MODE=quick-preview npm run render  # 20s, 540x960, 10fps; quick-preview.mp4
+ADVERTIO_RENDER_MODE=preview npm run render        # 20s, 540x960, 15fps; preview.mp4
+ADVERTIO_RENDER_MODE=final npm run render          # 20s, 1080x1920, 30fps; output.mp4
+ADVERTIO_RENDER_MODE=quick-preview npm run samples # 10 JPGs + contact sheet
 ```
 
-See `storyboard.json` for timed actions and copy; `ART_DIRECTION.md` for the visual specification.
+Final merely upscales preview-resolution imagery and is **not approved for high-resolution publication** until higher-resolution image assets are committed. The final mode must be launched only by an explicit manual request.
 
-### Branding and typography
+## GitHub Actions
 
-- Do **not** generate/recreate or modify the Advertio logo. If a logo is shown, use only the **original uploaded Advertio Logo.png** source asset.
-- Overlay Persian text in code using shared repository `assets/fonts/Vazirmatn-Regular.ttf` and `assets/fonts/Vazirmatn-Bold.ttf`, not text rendered into AI images.
-- Smartphone screens in these pictures are visual concepts, not authentic captures of the production app.
-- User-provided reference is an art-direction guide; keep small 3D props, yellow aircraft, navy backdrop, low visual density and large negative space. Realistic scene details in illustrative boards should be simplified further when implementing the actual 3D video.
+On pushes to this directory, the branch-local `render-video.yml` workflow automatically runs this folder's **quick-preview MP4** only and uploads it as a GitHub Actions artifact. Other video folders are isolated. The branch-local `render-manual.yml` can also select this folder using the `custom` option and entering `find-each-other-canada-iran-20s`, then selecting `quick-preview`, `preview`, or `final`.
+
+This project inherits `storyboard.json` and `ART_DIRECTION.md` from its parent storyboard branch; actual render code and optimized assets are fully committed alongside this README.

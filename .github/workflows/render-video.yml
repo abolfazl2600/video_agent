@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ (matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network') && 'quick-preview' || 'preview' }}
+      ADVERTIO_RENDER_MODE: ${{ (matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network' || matrix.folder == 'find-each-other-canada-iran-20s') && 'quick-preview' || 'preview' }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install FFmpeg (required for video encoding)
-        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
+        if: ${{ env.ADVERTIO_RENDER_MODE != 'quick-preview' || matrix.folder == 'find-each-other-canada-iran-20s' }}
         shell: bash
         run: |
           sudo apt-get update -qq
@@ -116,16 +116,19 @@ jobs:
         shell: bash
         run: |
           if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
-            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ] && [ "$VIDEO_FOLDER" != "mother-supplement-network" ]; then
+            if [ "$VIDEO_FOLDER" = "find-each-other-canada-iran-20s" ]; then
+              npm run render  # new project produces a real 20s quick-preview.mp4
+            elif [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ] && [ "$VIDEO_FOLDER" != "mother-supplement-network" ]; then
               echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
               exit 1
+            else
+              ADVERTIO_RENDER_MODE=preview npm run samples
             fi
-            ADVERTIO_RENDER_MODE=preview npm run samples
           else
             npm run render
           fi
       - name: Verify Quick Preview image set
-        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        if: ${{ env.ADVERTIO_RENDER_MODE == 'quick-preview' && matrix.folder != 'find-each-other-canada-iran-20s' }}
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -141,6 +144,31 @@ jobs:
               im.verify()
           print('Quick Preview: 10 verified frames and one contact sheet')
           PY
+      - name: Verify new video's Quick Preview MP4
+        if: ${{ env.ADVERTIO_RENDER_MODE == 'quick-preview' && matrix.folder == 'find-each-other-canada-iran-20s' }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          file=Path('quick-preview.mp4')
+          assert file.is_file() and file.stat().st_size>10000, 'quick-preview.mp4 missing'
+          info=json.loads(subprocess.check_output([
+              'ffprobe','-v','error','-show_entries',
+              'stream=width,height,avg_frame_rate:format=duration','-of','json',str(file)],text=True))
+          v=info['streams'][0]; fps_num,fps_den=map(int,v['avg_frame_rate'].split('/'))
+          assert (int(v['width']),int(v['height']))==(540,960),v
+          assert abs(fps_num/fps_den-10)<0.01,v
+          assert abs(float(info['format']['duration'])-20)<.12,info
+          print('Verified 20-second, 540x960, 10fps Quick Preview MP4')
+          PY
+      - name: Upload new video's Quick Preview MP4
+        if: ${{ env.ADVERTIO_RENDER_MODE == 'quick-preview' && matrix.folder == 'find-each-other-canada-iran-20s' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-${{ matrix.folder }}-quick-preview-${{ github.run_number }}
+          path: videos/${{ matrix.folder }}/quick-preview.mp4
+          retention-days: 30
+          if-no-files-found: error
       - name: Verify Preview or Final MP4
         if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
         run: |
@@ -165,7 +193,7 @@ jobs:
           print(f'{mode}: {name}, {w}x{h}, {fps}fps, {duration:.2f}s')
           PY
       - name: Upload Quick Preview images
-        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        if: ${{ env.ADVERTIO_RENDER_MODE == 'quick-preview' && matrix.folder != 'find-each-other-canada-iran-20s' }}
         uses: actions/upload-artifact@v4
         with:
           name: advertio-${{ matrix.folder }}-quick-preview-${{ github.run_number }}

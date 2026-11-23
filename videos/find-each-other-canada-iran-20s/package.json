@@ -1,0 +1,11 @@
+{
+  "name": "advertio-find-each-other-canada-iran-20s",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Folder-isolated, 20s 9:16 passenger-cargo ad with transparent Persian WEBP typography",
+  "scripts": {
+    "lint": "python3 render.py --check",
+    "render": "python3 render.py",
+    "samples": "python3 render.py --samples"
+  }
+}
