@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Advertio 'empty suitcase -> dollar income' image-based cinematic motion, 6 scenes.
-Standalone folder; no generated mark: original Advertio Logo.png is the only logo layer.
+Standalone folder; NO logo layers: AI-embedded artwork marks are cleaned prior to rendering.
 """
 from __future__ import annotations
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, ImageChops, features
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps, features
 from functools import lru_cache
 import json, math, os, subprocess, sys
 
@@ -13,7 +13,7 @@ ASSETS=ROOT/'assets'
 MODE=os.environ.get('ADVERTIO_RENDER_MODE','preview')
 assert MODE in ('preview','final','quick-preview')
 W,H=(720,1280) if MODE!='final' else (1080,1920)
-FPS=30 if MODE!='final' else 60
+FPS=30
 DURATIONS=[3.5,3.5,4,4,4,4]
 TOTAL_SECONDS=sum(DURATIONS)
 TOTAL=int(TOTAL_SECONDS*FPS)
@@ -45,25 +45,39 @@ def E(x):
 
 def clamp(x,a,b):return max(a,min(b,x))
 
-def source_logo():
- """Original uploaded brand asset, cropped and made transparent; never reconstructed."""
- im=Image.open(ASSETS/'Advertio Logo.png').convert('RGBA')
- a=im.split()[3]
- if a.getextrema()==(255,255):
-  # Alpha from white background: exact original colored RGB pixels retained.
-  red,green,blue=im.convert('RGB').split()
-  low=ImageChops.darker(ImageChops.darker(red,green),blue)
-  alpha=low.point(lambda x: max(0,min(255,(255-x)*3)))
-  im.putalpha(alpha)
- box=im.getchannel('A').getbbox();im=im.crop(box)
- return im
+# Remove AI-embedded brand marks from the ORIGINAL scene illustrations.
+# Reconstruct neutral regions using nearby wall / phone-header pixels, preserving
+# the airport, passengers, luggage, app content and typography as source artwork.
+# Coordinates are in the original 941x1672 scene images, BEFORE cropping.
+BRAND_REGIONS = [
+ (731,731,916,985,929), # scenes 1-3: two marks on airport wall
+ (731,731,916,985,929),
+ (731,731,916,985,929),
+ (411,724,524,849,548), # scene 4: app header mark
+ (347,734,527,848,541), # scene 5: app chat header marks
+ (411,722,648,858,658), # scene 6: app header and Advertio wordmark
+]
+
+def remove_embedded_brand_marks(source, idx):
+ x0,y0,x1,y1,donor_x=BRAND_REGIONS[idx]
+ replacement=source.copy()
+ draw=ImageDraw.Draw(replacement)
+ # Use row-based donor color from the adjacent unbranded wall or blank UI.
+ # Avoid blurring subject faces, luggage, messages and other meaningful content.
+ for yy in range(y0,y1+1):
+  c=source.getpixel((donor_x,yy))
+  draw.line((x0,yy,x1,yy),fill=c,width=1)
+ mask=Image.new('L',source.size,0)
+ ImageDraw.Draw(mask).rectangle((x0+5,y0+5,x1-5,y1-5),fill=255)
+ mask=mask.filter(ImageFilter.GaussianBlur(7))
+ return Image.composite(replacement,source,mask)
 
 # Cache all prepared illustration and text-art layers; render interpolates their transforms.
 @lru_cache(maxsize=1)
 def prepared_assets():
  scenes=[]
  for i,spec in enumerate(SCENES):
-  full=Image.open(ASSETS/'scenes'/spec['image']).convert('RGB')
+  full=remove_embedded_brand_marks(Image.open(ASSETS/'scenes'/spec['image']).convert('RGB'),i)
   # Crop only the generated empty top half; preserve people, packages, phones.
   tops=[516,516,524,490,490,500]
   lower=full.crop((0,tops[i],full.width,full.height))
@@ -107,11 +121,6 @@ def base_background():
  im.alpha_composite(layer)
  return im
 
-@lru_cache(maxsize=1)
-def logo_layer():
- o=Image.new('RGBA',(W,H),(0,0,0,0));im=source_logo();im.thumbnail((round(54*SCALE),round(54*SCALE)),Image.Resampling.LANCZOS)
- o.alpha_composite(im,(round(40*SCALE),round(29*SCALE)))
- return o
 
 def overlaid_art(base,idx,local,duration):
  u=clamp(local/duration,0,1)
@@ -153,43 +162,7 @@ def overlaid_art(base,idx,local,duration):
   alpha=b.getchannel('A').point(lambda z:round(z*op));b.putalpha(alpha)
   base.alpha_composite(b,(x,y))
 
- # Controlled diegetic accents; no out-of-context overlay that covers subjects.
- layer=Image.new('RGBA',(W,H),(0,0,0,0));dd=ImageDraw.Draw(layer)
- accent=SCENES[idx]['effect']
- if accent=='room':
-  cx,cy=round(495*SCALE),round(935*SCALE)
-  for offset in (0,.37):
-   v=(local*.67+offset)%1
-   rr=round((20+75*v)*SCALE)
-   dd.ellipse((cx-rr,cy-rr*.62,cx+rr,cy+rr*.62),outline=(*ORANGE,round(105*(1-v))),width=max(1,round(3*SCALE)))
- if accent=='dollar':
-  for k in range(4):
-   xx=round((530-39*k)*SCALE)
-   yy=round((680+25*k-20*math.sin(local*2.8+k))*SCALE)
-   r=round(4*SCALE)
-   dd.ellipse((xx-r,yy-r,xx+r,yy+r),fill=(*ORANGE,180))
- if accent=='carry':
-  x=round(470*SCALE);y=round(665*SCALE)
-  v=E((local-.65)/1.4)
-  dd.arc((x-36*SCALE,y-36*SCALE,x+36*SCALE,y+36*SCALE),220,220+290*v,fill=(*TEAL,220),width=round(5*SCALE))
- if accent=='match':
-  pts=[(round((120+i*8)*SCALE),round((950-110*math.sin((i/56)*math.pi))*SCALE)) for i in range(57)]
-  limit=round(57*E(local/3))
-  if limit>1:dd.line(pts[:limit],fill=(*TEAL,180),width=round(5*SCALE),joint='curve')
- if accent=='chat':
-  v=E((local-.45)/.6)
-  if v>0:
-   x=round(500*SCALE);y=round((910+42*(1-v))*SCALE)
-   rr=round(12*SCALE)
-   dd.ellipse((x-rr,y-rr,x+rr,y+rr),fill=(29,159,171,round(220*v)))
- if accent=='proof':
-  for k in range(8):
-   a=k*2.399+local*.6
-   xx=round((360+190*math.cos(a))*SCALE)
-   yy=round((760+120*math.sin(a))*SCALE)
-   rr=round((3+k%3)*SCALE)
-   dd.ellipse((xx-rr,yy-rr,xx+rr,yy+rr),fill=(*ORANGE,120))
- base.alpha_composite(layer)
+ # No extra icons, lines, sparkles or unrelated on-image embellishments.
  return base
 
 def render_one(idx,t):
@@ -199,12 +172,6 @@ def render_one(idx,t):
   elapsed+=length
  a=base_background().copy()
  a=overlaid_art(a,idx,local,duration)
- a.alpha_composite(logo_layer())
- d=ImageDraw.Draw(a)
- # Single continuous understated progress indicator. No chapter-counter clutter.
- y=round(1240*SCALE)
- d.rounded_rectangle((round(45*SCALE),y,round(675*SCALE),y+round(4*SCALE)),radius=round(2*SCALE),fill=(209,208,203,220))
- d.rounded_rectangle((round(45*SCALE),y,round((45+630*clamp(t/TOTAL_SECONDS,0,1))*SCALE),y+round(5*SCALE)),radius=round(2*SCALE),fill=ORANGE+(255,))
  return a.convert('RGB')
 
 def shot(t):
@@ -234,7 +201,7 @@ def poster():
 
 def video():
  out=ROOT/('preview.mp4' if MODE!='final' else 'output.mp4')
- cmd=['ffmpeg','-hide_banner','-loglevel','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{W}x{H}','-r',str(FPS),'-i','-','-an','-c:v','libx264','-preset','veryfast' if MODE!='final' else 'fast','-crf','21' if MODE!='final' else '19','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
+ cmd=['ffmpeg','-hide_banner','-loglevel','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{W}x{H}','-r',str(FPS),'-i','-','-an','-c:v','libx264','-preset','veryfast' if MODE!='final' else 'fast','-crf','21' if MODE!='final' else '17','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
  process=subprocess.Popen(cmd,stdin=subprocess.PIPE)
  try:
   for i in range(TOTAL):
