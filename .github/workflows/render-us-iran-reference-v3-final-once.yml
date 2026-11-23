@@ -1,0 +1,64 @@
+name: Advertio USA-Iran Reference v3 - Final One-Time Render
+
+# This job runs only when its own workflow file is initially committed/edited.
+# Normal per-folder pushes remain Preview-only through render-video.yml.
+on:
+  push:
+    paths:
+      - '.github/workflows/render-us-iran-reference-v3-final-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  final:
+    name: Final MP4 / 1080x1920 / original BYekan / 18s
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: videos/us-iran-air-cargo-topdown
+    env:
+      ADVERTIO_RENDER_MODE: final
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install renderer and ffmpeg
+        run: |
+          python3 -m pip install Pillow==11.3.0
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          command -v ffprobe
+      - name: Enforce original BYekan and verified reference source
+        run: |
+          test -s ../../بز/BYekan.ttf
+          test "$(git hash-object ../../بز/BYekan.ttf)" = d96a72946f7cc8adffcb6d63247efc0e3c59089d
+          npm run lint
+      - name: Render ONLY this video in Final quality
+        run: npm run render
+      - name: Validate final H.264 metadata
+        run: |
+          python3 - <<'PY'
+          import json, subprocess
+          out=subprocess.check_output(
+              ['ffprobe','-v','error','-show_entries','stream=codec_name,width,height,avg_frame_rate:format=duration','-of','json','output.mp4'],
+              text=True)
+          v=json.loads(out)
+          s=v['streams'][0]
+          assert s['codec_name']=='h264',s
+          assert (s['width'],s['height'])==(1080,1920),s
+          assert s['avg_frame_rate']=='30/1',s
+          assert abs(float(v['format']['duration'])-18)<0.1,v
+          print('Validated original-BYekan Full HD final MP4, 18s @30fps')
+          PY
+      - name: Upload Final MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-us-iran-reference-v3-fullhd-final
+          path: videos/us-iran-air-cargo-topdown/output.mp4
+          if-no-files-found: error
+          retention-days: 30
