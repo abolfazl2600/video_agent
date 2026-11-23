@@ -3,6 +3,7 @@ import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConf
 import {C,F,BrandLogo,Person,TechRings,pop,fp,useF} from './components';
 import {AirlinerDetailed,CargoParcelDetailed,TechnicalPill} from './DetailAssets';
 import {ProductPhone} from './ProductPhone';
+import {TerminalBackdrop,AirportDistrict,DocumentAndPassport} from './SceneProps';
 
 const at=(left:number,top:number,extra:React.CSSProperties={}):React.CSSProperties=>({position:'absolute',left,top,...extra});
 const text=(size:number,color=C.navy,weight=850):React.CSSProperties=>({fontFamily:F,fontSize:size,fontWeight:weight,color,lineHeight:1.46,letterSpacing:-1.5,direction:'rtl',textAlign:'center'});
@@ -62,6 +63,9 @@ const SceneOne:React.FC=()=>{
   </div>
   <div style={at(164,725,{opacity:.75,transform:'scale(1.15)'})}><TechRings size={730}/></div>
   <div style={at(240,855,{transform:'scale(' +(.48+.52*pop(f,13,150))+') rotate('+((1-s)*-12)+'deg)'})}><CargoParcelDetailed width={600}/></div>
+  <div style={at(115,980,{opacity:fp(f,28,45),transform:'rotate(-8deg) scale(.72)',transformOrigin:'left top'})}><DocumentAndPassport/></div>
+  <div style={at(722,1050,{opacity:fp(f,33,48)})}><TechnicalPill label="INT'L TRAVEL" sub="مسیرهای هوایی"/></div>
+  <div style={at(98,1370,{opacity:fp(f,50,63)})}><TechnicalPill label="PACKAGE / DOCUMENTS" sub="ثبت آگهی بار"/></div>
   <div style={at(165,1545,{width:750,textAlign:'center',opacity:fp(f,43,67)})}><Tag>PARCEL / TRAVELER / CONNECTION</Tag></div>
  </Scene>;
 };
@@ -71,14 +75,16 @@ const SceneTwo:React.FC=()=>{
  return <Scene duration={120}>
   <div style={at(83,330,{width:910})}><div style={text(65,C.navy)}>یه نفر بار داره،</div><div style={text(63,C.blue)}>یکی هم مسافر ایرانه!</div></div>
   <div style={at(85,560,{opacity:fp(f,1,20),transform:'translateX('+((1-pop(f,2))*-160)+'px)'})}>
-   <Card css={{width:440,height:470,padding:'22px 25px',position:'relative',background:'linear-gradient(145deg,#FFF,#E8F7FE)'}}>
+   <Card css={{width:440,height:470,padding:'22px 25px',position:'relative',background:'linear-gradient(145deg,#FFF,#E8F7FE)',overflow:'hidden'}}>
+    <div style={at(-20,98,{opacity:.62})}><TerminalBackdrop variant="yyz"/></div>
     <div style={at(73,-8)}><Person width={310}/></div>
     <div style={at(23,25)}><Tag>CANADA</Tag></div>
     <div style={at(20,388,{width:390})}><div style={text(34,C.ink)}>فرستنده بار</div></div>
    </Card>
   </div>
   <div style={at(552,995,{opacity:fp(f,17,39),transform:'translateX('+((1-pop(f,22))*160)+'px)'})}>
-   <Card css={{width:440,height:475,padding:24,position:'relative',background:'linear-gradient(145deg,#FFF,#E5F6FF)'}}>
+   <Card css={{width:440,height:475,padding:24,position:'relative',background:'linear-gradient(145deg,#FFF,#E5F6FF)',overflow:'hidden'}}>
+    <div style={at(-21,105,{opacity:.60})}><TerminalBackdrop variant="ika"/></div>
     <div style={at(76,-4)}><Person traveler width={315}/></div>
     <div style={at(28,24)}><Tag>IRAN</Tag></div>
     <div style={at(20,394,{width:390})}><div style={text(34,C.blue)}>مسافر هوایی</div></div>
@@ -88,6 +94,8 @@ const SceneTwo:React.FC=()=>{
    <path d="M15 13 Q360 -20 337 336" fill="none" stroke="#A1DDEE" strokeWidth="8" strokeDasharray="10 17"/>
    <path d="M15 13 Q360 -20 337 336" fill="none" stroke={C.blue} strokeWidth="8" strokeDasharray="630" strokeDashoffset={630*(1-p)}/>
   </svg>
+  <div style={at(70,1095,{opacity:fp(f,43,61)})}><TechnicalPill label="YYZ → IKA" sub="پرواز بین‌المللی"/></div>
+  <div style={at(675,720,{opacity:fp(f,32,48)})}><TechnicalPill label="TRAVEL READY" sub="ظرفیت چمدان"/></div>
   <div style={at(160,1550,{opacity:fp(f,51,70)})}><Card css={{padding:'22px 40px',width:760,textAlign:'center'}}><div style={text(35,C.navy)}>فقط باید همدیگه رو پیدا کنن!</div></Card></div>
  </Scene>;
 };
@@ -97,6 +105,8 @@ const SceneThree:React.FC=()=>{
  return <Scene duration={150}>
   <div style={at(80,325,{width:920})}><div style={text(61,C.navy)}>اینجاست که ادورتیو</div><div style={text(66,C.blue)}>وارد می‌شه!</div></div>
   <div style={at(135,515,{opacity:.52})}><TechRings size={800}/></div>
+  <div style={at(67,744,{opacity:fp(f,25,44)})}><TechnicalPill label="ADVERTIO / LISTINGS" sub="پلتفرم ارتباط کاربران" accent/></div>
+  <div style={at(760,1030,{opacity:fp(f,55,73)})}><TechnicalPill label="YYZ → IKA" sub="نمونه مسیر"/></div>
   <div style={at(255,495,{opacity:fp(f,2,19),transform:'translateY('+((1-a)*600)+'px) scale('+(0.55+.45*a)+')'})}><ProductPhone width={565}/></div>
   {['ثبت آگهی ارسال بار','انتخاب مبدأ و مقصد','ارتباط مستقیم با مسافر'].map((label,i)=>{
    const px=i===0?68:i===1?525:78,py=[1120,1290,1460][i];
@@ -148,8 +158,10 @@ const SceneFour:React.FC=()=>{
    <circle cx={p0.x} cy={p0.y} r="15" fill={C.blue} stroke="white" strokeWidth="5"/>
    <circle cx={p3.x} cy={p3.y} r="15" fill={C.blue} stroke="white" strokeWidth="5"/>
   </svg>
-  <div style={at(63,1170)}><City name="TORONTO"/></div>
-  <div style={at(770,1190)}><City name="TEHRAN"/></div>
+  <div style={at(44,1159)}><AirportDistrict city="TORONTO"/></div>
+  <div style={at(759,1185)}><AirportDistrict city="TEHRAN"/></div>
+  <div style={at(95,1369,{opacity:fp(f,19,44)})}><TechnicalPill label="AIR ROUTE" sub="کانادا به ایران" accent/></div>
+  <div style={at(758,1378,{opacity:fp(f,45,69)})}><TechnicalPill label="CONNECT" sub="گفتگوی مستقیم"/></div>
   <div style={at(pos.x,pos.y,{transform:'translate(-50%,-50%) rotate('+pos.angle+'deg)',transformOrigin:'center',filter:'drop-shadow(0 17px 23px rgba(13,99,161,.30))'})}><AirlinerDetailed width={422}/></div>
   <div style={at(104,1515,{width:866,opacity:fp(f,50,74)})}>
    <Card css={{padding:'27px 30px',background:'#FFFFFFEE'}}>
@@ -167,6 +179,8 @@ const SceneFive:React.FC=()=>{
    <div style={{height:5,width:400,margin:'19px auto',background:'linear-gradient(90deg,#0F69D7,#21CBE1)'}}/>
   </div>
   <div style={at(175,540,{opacity:.48})}><TechRings size={730}/></div>
+  <div style={at(80,800,{opacity:fp(f,23,47)})}><TechnicalPill label="DIRECT MESSAGE" sub="ارتباط بدون واسطه" accent/></div>
+  <div style={at(741,1070,{opacity:fp(f,36,56)})}><TechnicalPill label="AIR TRAVEL" sub="مسافر مسیر ایران"/></div>
   <div style={at(330,600,{transform:'scale(.70)',transformOrigin:'left top'})}><ProductPhone width={565}/></div>
   <div style={at(66,1000,{transform:'rotate(-17deg)'})}><AirlinerDetailed width={560}/></div>
   <div style={at(650,1120,{transform:'scale(.67)',transformOrigin:'left top'})}><CargoParcelDetailed width={330}/></div>
