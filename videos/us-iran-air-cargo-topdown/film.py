@@ -187,7 +187,8 @@ def scene1(t):
         d.rounded_rectangle((282,y,317,y+37),radius=9,fill=op(C,160))
         d.rounded_rectangle((402,y,435,y+37),radius=9,fill=op(C,160))
     spr(im,airplane_sprite(),360,lerp(986,691,ease(t/3)),.89,angle=0)
-    fa(d,'بارت رو می‌خوای بفرستی؟',360,1109,36,C)
+    d.rounded_rectangle((119,1079,601,1153),radius=28,fill=op((62,13,24),235))
+    fa(d,'بارت رو می‌خوای بفرستی؟',360,1118,40,C)
     progress(im,t,1)
     return im
 
@@ -211,7 +212,7 @@ def scene2(t):
     fa(d,'بسته',203-shift,867,47,INK)
     fa(d,'مدارک',516+shift,867,47,INK)
     d.rounded_rectangle((195,999,525,1047),radius=22,fill=op(RED))
-    fa(d,'هوایی  •  دوطرفه',360,1021,27,C)
+    fa(d,'حمل بار مسافری',360,1021,28,C)
     progress(im,t+3,2,light=True)
     return im
 
@@ -219,7 +220,7 @@ def scene3(t):
     im=bg('ink').convert('RGBA');d=ImageDraw.Draw(im)
     photo_header(im,'03  /  THE FLIGHT')
     fa(d,'یک مسیر، دو جهت',360,186,62,C,stroke=1)
-    en(d,'USA  ⇄  IRAN',360,275,40,CORAL)
+    en(d,'USA   /   IRAN',360,275,38,CORAL)
     # origami-like floating route map, no copied geographical shapes
     for r in (240,307,369):
         d.ellipse((360-r,657-r,360+r,657+r),outline=op((160,110,117),90),width=2)
@@ -264,9 +265,10 @@ def phone_ui(im,t):
         shift=65*(1-sc)
         d.rounded_rectangle((164+shift,yy,557+shift,yy+114),radius=18,fill=op((255,255,252),int(255*sc)),outline=op((217,214,209),int(255*sc)),width=2)
         d.ellipse((188+shift,yy+27,240+shift,yy+79),fill=op((218,232,230),int(255*sc)))
-        en(d,'✈',214+shift,yy+54,25,TEAL,int(255*sc))
-        fa(d,'آمریکا  ⇄  ایران',386+shift,yy+38,27,INK,int(255*sc))
-        fa(d,'مسافر هوایی  •  پیام مستقیم',388+shift,yy+83,20,TEAL,int(255*sc))
+        d.line((201+shift,yy+53,227+shift,yy+53),fill=op(TEAL,int(255*sc)),width=4)
+        d.polygon([(212+shift,yy+35),(216+shift,yy+35),(219+shift,yy+66),(209+shift,yy+66)],fill=op(TEAL,int(255*sc)))
+        fa(d,('آمریکا به ایران','ایران به آمریکا','آمریکا به ایران')[i],386+shift,yy+38,26,INK,int(255*sc))
+        fa(d,'گفت‌وگوی مستقیم با مسافر',388+shift,yy+83,20,TEAL,int(255*sc))
     d.rounded_rectangle((253,981,474,1026),radius=22,fill=op((71,144,137)))
     fa(d,'مشاهده آگهی‌ها',363,1001,23,C)
 
@@ -298,13 +300,13 @@ def scene5(t):
         d.ellipse((x-13,370,x+13,399),fill=op((244,224,211)))
     fa(d,'حدود',360,552,67,INK)
     fa(d,'۲',360,731,210,RED,stroke=2)
-    fa(d,'هفته*',360,856,77,INK,stroke=1)
+    fa(d,'هفته',360,856,77,INK,stroke=1)
     # cards filling left->right to visually denote approximate two weeks
     for i in range(14):
         x=133+(i%7)*68;y=916+(i//7)*34
         active=ease((t-.15-i*.055)/.25)
         d.rounded_rectangle((x,y,x+42,y+22),radius=6,fill=op(TEAL if active>.5 else (215,212,208)))
-    fa(d,'* بسته به مسیر و توافق با مسافر',360,1070,28,C)
+    fa(d,'زمان به مسیر و توافق با مسافر بستگی دارد',360,1070,26,C)
     progress(im,t+12,5)
     return im
 
