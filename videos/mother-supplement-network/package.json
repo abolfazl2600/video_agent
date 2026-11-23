@@ -1,0 +1,21 @@
+{
+  "name": "advertio-mother-supplement-network",
+  "private": true,
+  "type": "module",
+  "description": "Standalone 15s vertical 3D isometric Advertio passenger cargo campaign",
+  "scripts": {
+    "lint": "node --check scene.mjs && node --check render.mjs && node --check browser.mjs && python3 -m py_compile finish.py",
+    "build": "esbuild browser.mjs --bundle --format=iife --minify --outfile=dist/film.js",
+    "frames": "npm run build && node render.mjs",
+    "encode": "python3 finish.py",
+    "render": "npm run frames && npm run encode",
+    "samples": "npm run build && node render.mjs --samples && python3 finish.py --samples"
+  },
+  "dependencies": {
+    "three": "^0.180.0",
+    "puppeteer-core": "^24.20.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

@@ -45,3 +45,7 @@ videos/your-video-slug/
 The project's `render` command must respect `ADVERTIO_RENDER_MODE=preview|final` (defaults to preview) and produce `preview.mp4` or `output.mp4`, respectively. New projects can define their own preview/final resolutions, durations, fps and dependencies; only `parcel-to-iran-isometric` currently enforces exact 10/30 fps and 15-second duration. The existing legacy `بز/` renderer has its own workflow and has not yet been migrated to this preview/final protocol.
 
 **Brand assets:** Never AI-generate or redraw the Advertio logo. Use the original uploaded `Advertio Logo.png` for any designs that include the logo; plain text brand mentions are permitted.
+
+## Mother supplement campaign
+
+The standalone `videos/mother-supplement-network/` project is included on main with a folder-scoped, WebGL-accelerated Quick Preview (10 image samples plus a contact sheet) and manually selectable Preview/Final MP4 outputs. Open **Actions → Advertio Manual Render** and choose `mother-supplement-network` as the folder. Advertio connects customers with travelers; it is not the carrier. Any supplement or parcel must comply with airline, carrier, destination, and customs rules.

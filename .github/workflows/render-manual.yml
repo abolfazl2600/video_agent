@@ -11,6 +11,7 @@ on:
         default: parcel-to-iran-isometric
         options:
           - parcel-to-iran-isometric
+          - mother-supplement-network
           - custom
       custom_folder:
         description: 'If folder is custom, enter videos/<this-name> (slug only)'
@@ -20,8 +21,9 @@ on:
         description: 'Render quality'
         type: choice
         required: true
-        default: preview
+        default: quick-preview
         options:
+          - quick-preview
           - preview
           - final
 
@@ -90,7 +92,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
+      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || ((matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network') && 'quick-preview' || 'preview') }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
@@ -120,7 +122,7 @@ jobs:
           command -v ffprobe
           ffmpeg -version
       - name: Verify Chrome for accelerated WebGL
-        if: matrix.folder == 'parcel-to-iran-isometric'
+        if: matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network'
         shell: bash
         run: |
           command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser
@@ -148,7 +150,7 @@ jobs:
         shell: bash
         run: |
           if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
-            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ]; then
+            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ] && [ "$VIDEO_FOLDER" != "mother-supplement-network" ]; then
               echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
               exit 1
             fi
@@ -190,7 +192,7 @@ jobs:
           fps=num/den
           duration=float(obj['format']['duration'])
           assert w>0 and h>0 and fps>0 and duration>0, (w,h,fps,duration)
-          if os.environ['VIDEO_FOLDER']=='parcel-to-iran-isometric':
+          if os.environ['VIDEO_FOLDER'] in ('parcel-to-iran-isometric','mother-supplement-network'):
               expected=(540,960,10) if mode=='preview' else (1080,1920,30)
               assert (w,h)==expected[:2] and abs(fps-expected[2])<0.01, (mode,w,h,fps)
               assert 14.9<=duration<=15.1, (mode,duration)
