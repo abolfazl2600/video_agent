@@ -23,6 +23,6 @@ videos/your-video-slug/
   ...              # every asset needed to render this video
 ```
 
-The project's `render` command must produce `videos/<your-video-slug>/output.mp4` (1080×1920, 15 seconds). Each project may have its own scenes, dependencies and story. Changing one folder will not trigger a rebuild of the rest.
+The project's `render` command must produce `videos/<your-video-slug>/output.mp4`. Each project may choose its own video duration, aspect ratio, resolution, scenes and dependencies. The workflow checks that the resulting MP4 is readable and nonempty. Changing one folder will not trigger a rebuild of the rest.
 
 **Brand assets:** Never AI-generate or redraw the Advertio logo. Use the original uploaded `Advertio Logo.png` for any designs that include the logo; plain text brand mentions are permitted.
