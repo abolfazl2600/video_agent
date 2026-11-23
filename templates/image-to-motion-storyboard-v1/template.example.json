@@ -1,0 +1,235 @@
+{
+  "template_id": "advertio-image-to-motion-storyboard-v1",
+  "reference": "advertio_storyboard_animated.mp4 (16 sec H264 from prior campaign)",
+  "is_template": true,
+  "output": {
+    "path": "preview.mp4",
+    "codec": "libx264",
+    "pixel_format": "yuv420p",
+    "width": 720,
+    "height": 1280,
+    "fps": 15,
+    "duration_seconds": 16,
+    "audio": false,
+    "faststart": true,
+    "crf": 23,
+    "final_option": {
+      "filename": "output.mp4",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "requires_explicit_request": true
+    }
+  },
+  "artwork": {
+    "mode": "single_four_panel_storyboard_or_four_individual_images",
+    "storyboard_path": "assets/storyboard.png",
+    "individual_scene_paths": [
+      "assets/scene-01.png",
+      "assets/scene-02.png",
+      "assets/scene-03.png",
+      "assets/scene-04.png"
+    ],
+    "use_individual_scenes_if_present": true,
+    "fallback_four_panel_crop_example_for_941x1672": [
+      [
+        0,
+        0,
+        660,
+        412
+      ],
+      [
+        0,
+        413,
+        660,
+        816
+      ],
+      [
+        0,
+        812,
+        660,
+        1224
+      ],
+      [
+        0,
+        1225,
+        660,
+        1672
+      ]
+    ],
+    "crop_note": "Example rectangles are tied to the reviewed 941x1672 storyboard. Recalculate for new source artwork; exclude embedded typography where possible.",
+    "viewport": {
+      "left": 30,
+      "top": 426,
+      "right": 690,
+      "bottom": 1060,
+      "width": 660,
+      "height": 634,
+      "radius": 43
+    },
+    "virtual_source_canvas": {
+      "minimum_width": 1010,
+      "minimum_height": 660
+    },
+    "shadow": {
+      "offset_x": 9,
+      "offset_y": 13,
+      "blur": 15,
+      "low_opacity": true
+    },
+    "no_missing_pixels": true
+  },
+  "camera": {
+    "technique": "Ken Burns 2.5D crop in fixed lower viewport",
+    "easing": "smoothstep u*u*(3-2*u)",
+    "travel_x_px": 210,
+    "zoom_start": 1,
+    "zoom_end": 1.035,
+    "float_x_px_amplitude": 9,
+    "float_x_frequency": 1.3,
+    "float_y_px_amplitude": 8,
+    "float_y_frequency": 0.94,
+    "keep_important_subjects_visible": true,
+    "allow_direction_override_per_scene": true
+  },
+  "typography": {
+    "font_regular": "../../assets/fonts/Vazirmatn-Regular.ttf",
+    "font_bold": "../../assets/fonts/Vazirmatn-Bold.ttf",
+    "rtl": true,
+    "language": "fa",
+    "max_width_px": 630,
+    "header_positions": {
+      "brand_x": 54,
+      "brand_y": 39,
+      "chapter_x": 659,
+      "chapter_y": 64,
+      "segments_y": 114
+    },
+    "main_copy_positions_y": [
+      213,
+      292,
+      372
+    ],
+    "max_font_sizes_px": [
+      48,
+      46,
+      28
+    ],
+    "reveal_delays_seconds": [
+      0,
+      0.42,
+      1.05
+    ],
+    "reveal_durations_seconds": [
+      0.42,
+      0.42,
+      0.48
+    ],
+    "initial_horizontal_slide_px": 40
+  },
+  "visual": {
+    "background": "#FAF9F6",
+    "ink": "#22272C",
+    "orange": "#EF632C",
+    "muted": "#6A6F73",
+    "line": "#DDDDDC",
+    "fixed_top_typography": true,
+    "animated_image_in_lower_viewport": true,
+    "overlay_animation_each_scene": true,
+    "poster_scrolling_forbidden": true
+  },
+  "transitions": {
+    "type": "crossfade",
+    "seconds": 0.36
+  },
+  "progress": {
+    "segments": 4,
+    "timeline_start_x": 58,
+    "timeline_end_x": 662,
+    "timeline_y": 1230
+  },
+  "branding": {
+    "brand_text": "ADVERTIO",
+    "site": "advertio.net",
+    "original_logo_path": "assets/Advertio Logo.png",
+    "original_logo_required_if_logo_is_displayed": true,
+    "may_omit_logo_and_use_text": true,
+    "ai_generated_or_redrawn_logo_forbidden": true
+  },
+  "scenes": [
+    {
+      "index": 1,
+      "start_sec": 0,
+      "end_sec": 4,
+      "headline": "مامانت توی ایرانه؟",
+      "orange_line": "یه مکمل خوب لازم داره؟",
+      "supporting_line": "گاهی فاصله، نگرانی رو بیشتر می‌کنه",
+      "camera_focus_from": "daughter",
+      "camera_focus_to": "mother video call",
+      "overlay": "expanding call pulses, moving notification dots"
+    },
+    {
+      "index": 2,
+      "start_sec": 4,
+      "end_sec": 8,
+      "headline": "چطور برسونیش ایران؟",
+      "orange_line": "مکمل رو آماده کن",
+      "supporting_line": "راهش، پیدا کردن مسافر هم‌مسیره",
+      "camera_focus_from": "parcel with supplement",
+      "camera_focus_to": "Iran destination",
+      "overlay": "route dash draw-on and moving paper aircraft"
+    },
+    {
+      "index": 3,
+      "start_sec": 8,
+      "end_sec": 12,
+      "headline": "مسافر ایران رو پیدا کن",
+      "orange_line": "با آگهی‌های ادورتیو",
+      "supporting_line": "ببین، گفت‌وگو کن، هماهنگ شو",
+      "camera_focus_from": "traveler",
+      "camera_focus_to": "app screen",
+      "overlay": "chat bubble slides in, notification pulse"
+    },
+    {
+      "index": 4,
+      "start_sec": 12,
+      "end_sec": 16,
+      "headline": "بیش از ۱۱٬۰۰۰ آگهی",
+      "orange_line": "حمل بار و مسافر",
+      "supporting_line": "اینجا در ادورتیو",
+      "camera_focus_from": "mother smiling",
+      "camera_focus_to": "received parcel and CTA",
+      "overlay": "scaling checkmark ring, small orange particles",
+      "cta": "advertio.net",
+      "legal_note": "حمل مکمل تابع قوانین شرکت هواپیمایی و گمرک است"
+    }
+  ],
+  "quick_preview": {
+    "frames": 12,
+    "timestamps_sec": [
+      0.5,
+      1.65,
+      3.25,
+      4.3,
+      5.6,
+      7.4,
+      8.3,
+      9.6,
+      11.2,
+      12.4,
+      13.5,
+      15.7
+    ],
+    "filename": "quick-preview-contact-sheet.jpg"
+  },
+  "quality_gates": [
+    "mp4_exists_and_ffprobe_valid",
+    "visible_camera_motion_per_scene",
+    "no_crop_blank_bands",
+    "correct_RTL",
+    "one_relevant_overlay_per_scene",
+    "original_logo_only",
+    "accurate_claims"
+  ],
+  "output_links_must_be_verified": true
+}
