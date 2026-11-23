@@ -1,0 +1,10 @@
+{
+  "name": "advertio-parcel-finder-image-motion-20s",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "python3 -m py_compile render.py",
+    "samples": "python3 render.py --samples",
+    "render": "python3 render.py"
+  }
+}
