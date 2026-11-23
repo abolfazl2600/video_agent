@@ -44,3 +44,12 @@ Optional representative frame previews: `npm run samples`. The final video rende
 
 ### CI reliability
 The workflow installs FFmpeg and FFprobe **before** 3D frame rendering, so encoding dependencies are validated early instead of failing after the 450-frame Final render. The initial run failed during encoding because FFmpeg was missing. Preview now renders only 150 frames by default; Final still uses 450 frames.
+
+
+## Updated art direction — pastel porcelain isometric city
+
+The scene was rebuilt to follow the supplied reference image: multiple matte ivory apartment/retail buildings, powder-blue windows, rooftop HVAC details, storefront accent bands, crosswalks, pale streets, miniature pedestrians, toy cars and a pink city bus. The background is bright neutral grey/white; saturated colors are reserved for vehicles, clothing and small wayfinding details. The 3D orthographic camera and four Persian-dialogue scenes remain intact.
+
+Typography: the original Vazirmatn Regular and Bold font binaries stored at `../../assets/fonts/` are rendered in charcoal/teal over minimal translucent ivory editorial cards. No generated or reinterpreted Advertio logo is introduced. The source image is an art-direction reference; its pixels are not embedded into the video.
+
+**Render policy:** pushing these scene changes runs only the 10 fps `preview.mp4` workflow for this folder. A 30 fps Final must be selected explicitly in GitHub Actions.

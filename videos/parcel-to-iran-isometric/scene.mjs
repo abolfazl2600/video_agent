@@ -1,221 +1,193 @@
-import * as THREE from 'three';
+import * as T from 'three';
 import {SVGRenderer} from 'three/addons/renderers/SVGRenderer.js';
 
-// All geometry is authored in real 3D space and rendered from a fixed isometric
-// orthographic camera; there is no generated image or fake logo in this film.
+// Advertio / bright architectural miniature: real Three.js 3D and isometric camera.
+// Reference mood: porcelain-white city blocks, powder-blue windows, pastel transit,
+// tiny vivid pedestrians, understated warm daylight. No logo is fabricated.
 export function createFilm(){
-  const scene=new THREE.Scene();
-  scene.background=new THREE.Color('#0C1827');
-  const camera=new THREE.OrthographicCamera(-6.35,6.35,11.30,-11.30,0.1,100);
-  camera.position.set(19,20,24);
-  const renderer=new SVGRenderer();
-  renderer.setSize(720,1280);
-  renderer.setQuality('high');
-  renderer.setClearColor('#0C1827');
-  renderer.overdraw=0.5;
+ const scene=new T.Scene();
+ scene.background=new T.Color('#F0F1EF');
+ const camera=new T.OrthographicCamera(-8,8,14.23,-14.23,.1,160);
+ const renderer=new SVGRenderer();
+ renderer.setSize(720,1280);
+ renderer.setClearColor('#F0F1EF');
+ renderer.overdraw=.2;
+ const C={ground:'#E7E9E7',road:'#D9DDDE',walk:'#F8F8F5',white:'#F8F9F6',stone:'#EEF1F0',shadow:'#C7CFD0',win:'#BED7DB',glass:'#C9E1E2',yellow:'#F6BF4D',pink:'#EB7997',coral:'#F27B74',teal:'#31B7AD',blue:'#4B9DBB',ink:'#24394C',orange:'#EAA34E'};
+ const mats=new Map();
+ const mat=c=>{if(!mats.has(c))mats.set(c,new T.MeshBasicMaterial({color:c,side:T.DoubleSide}));return mats.get(c);};
+ const mesh=(p,g,c)=>{const o=new T.Mesh(g,mat(c));p.add(o);return o};
+ function box(p,x,y,z,w,h,d,c){const o=mesh(p,new T.BoxGeometry(w,h,d),c);o.position.set(x,y,z);return o;}
+ function sphere(p,x,y,z,r,c,n=10){const o=mesh(p,new T.SphereGeometry(r,n,7),c);o.position.set(x,y,z);return o;}
+ function cyl(p,x,y,z,r1,r2,h,c,n=10){const o=mesh(p,new T.CylinderGeometry(r1,r2,h,n),c);o.position.set(x,y,z);return o;}
+ function rod(p,a,b,r,c){const v=new T.Vector3(...a),w=new T.Vector3(...b),o=mesh(p,new T.CylinderGeometry(r,r,v.distanceTo(w),7),c);o.position.copy(v).add(w).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),w.sub(v).normalize());return o;}
+ function shadow(p,x,y,z,sx,sz,a=.15){const o=new T.Mesh(new T.CircleGeometry(1,18),new T.MeshBasicMaterial({color:'#B7BDBD',transparent:true,opacity:a,depthWrite:false,side:T.DoubleSide}));o.rotation.x=-Math.PI/2;o.scale.set(sx,sz,1);o.position.set(x,y,z);p.add(o);}
 
-  const navy='#10273C', cyan='#31D6D4', light='#DFF7FC',
-        white='#ECF7F8', orange='#FDAD67', red='#F07172';
-  const mat=(color,extra={})=>new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,...extra});
-  const colorShift=(value,mult)=>new THREE.Color(value).multiplyScalar(mult);
-  const edgeMat=new THREE.LineBasicMaterial({color:'#62D4DF',transparent:true,opacity:0.33});
-  function addMesh(geometry,color,parent=scene){
-    const result=new THREE.Mesh(geometry,typeof color==='string'?mat(color):color);
-    parent.add(result);return result;
-  }
-  function box(parent,x,y,z,w,h,d,color,edge=false){
-    const colors=[1.00,.74,1.13,.67,.95,.85].map(s=>mat(colorShift(color,s)));
-    const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),colors);
-    mesh.position.set(x,y,z);parent.add(mesh);
-    if(edge){
-      const lines=new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry),edgeMat);
-      mesh.add(lines);
-    }
-    return mesh;
-  }
-  function sph(parent,x,y,z,r,color,segments=16){
-    const mesh=addMesh(new THREE.SphereGeometry(r,segments,12),color,parent);
-    mesh.position.set(x,y,z);return mesh;
-  }
-  function cyl(parent,x,y,z,rTop,rBottom,h,color,segments=14){
-    const mesh=addMesh(new THREE.CylinderGeometry(rTop,rBottom,h,segments),color,parent);
-    mesh.position.set(x,y,z);return mesh;
-  }
-  function disc(parent,x,y,z,rx,rz,color,opacity=.2){
-    const mesh=addMesh(new THREE.CircleGeometry(1,32),mat(color,{transparent:true,opacity}),parent);
-    mesh.rotation.x=-Math.PI/2;
-    mesh.scale.set(rx,rz,1);
-    mesh.position.set(x,y,z);return mesh;
-  }
-  function limb(parent,ax,ay,az,bx,by,bz,r,color){
-    const a=new THREE.Vector3(ax,ay,az),b=new THREE.Vector3(bx,by,bz);
-    const part=addMesh(new THREE.CylinderGeometry(r,r,b.distanceTo(a),12),color,parent);
-    part.position.copy(a).add(b).multiplyScalar(.5);
-    part.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());
-    return part;
-  }
+ // Pale city floor and intersecting streets, modeled without outline/HUD styling.
+ box(scene,0,-.18,0,43,.30,43,C.ground);
+ for(const [x,z] of [[-10,-10],[10,-10],[-10,10],[10,10]])box(scene,x,-.005,z,15,.14,15,C.walk);
+ box(scene,0,-.035,0,43,.045,5.7,C.road);
+ box(scene,0,-.028,0,5.7,.052,43,C.road);
+ for(const s of [-1,1]){
+  box(scene,s*3.15,.045,0,.16,.10,39,'#F2F2EF');
+  box(scene,0,.041,s*3.15,39,.11,.16,'#F2F2EF');
+ }
+ for(let k=-3;k<=3;k++){
+  box(scene,k*.70,.05,0,.42,.018,4.90,'#F8F9F8');
+  box(scene,0,.053,k*.70,4.90,.015,.42,'#F8F9F8');
+ }
+ for(let z=-20;z<20;z+=4.7)if(Math.abs(z)>4)box(scene,0,.04,z,.08,.013,2.10,'#F5F6F4');
+ for(let x=-20;x<20;x+=4.7)if(Math.abs(x)>4)box(scene,x,.041,0,2.20,.013,.08,'#F6F7F4');
 
-  // Compact floating city block with three-dimensional, bevel-free isometric styling.
-  box(scene,0,-.88,0,17.0,1.25,12.5,'#07121F',true);
-  box(scene,0,-.18,0,16.35,.22,11.85,'#16354B',true);
-  box(scene,0,-.045,0,14.85,.07,10.5,'#213C4E');
-  for(const x of [-6.1,-3.05,0,3.05,6.1]){
-    box(scene,x,.008,-4.55,.055,.025,1.4,'#4E7182');
+ function roofMachine(p,dx,dz,y){
+  box(p,dx,y+.15,dz,1.6,.25,1.6,'#E4E8E6');
+  cyl(p,dx,y+.42,dz,.56,.56,.38,'#D4DCDA',12);
+  cyl(p,dx,y+.65,dz,.42,.42,.09,'#EDF1EF',12);
+  for(let i=0;i<5;i++){const a=i*Math.PI*2/5;box(p,dx+Math.cos(a)*.24,y+.70,dz+Math.sin(a)*.24,.09,.045,.55,'#DCE4E2');}
+ }
+ function building(x,z,w,d,floors,opt={}){
+  const root=new T.Group();root.position.set(x,.02,z);scene.add(root);
+  const h=floors*1.25+.75;
+  box(root,.12,.16,.10,w+.45,.30,d+.48,'#E4E8E6');
+  shadow(root,.18,.34,.20,w*.65,d*.60,.11);
+  box(root,0,h/2+.30,0,w,h,d,C.white);
+  box(root,0,h+.37,0,w+.15,.25,d+.15,'#FBFBF8');
+  box(root,0,h+.53,0,w+.48,.13,d+.48,'#E4E8E6');
+  for(let j=0;j<floors;j++){
+   const wy=.90+j*1.27;
+   const n=Math.max(2,Math.floor(w/1.35));
+   for(let k=0;k<n;k++){
+    const xx=-w/2+(k+.5)*w/n;
+    box(root,xx,wy,d/2+.025,.48,.60,.05,C.win);
+    box(root,xx,wy-.33,d/2+.14,.71,.08,.21,'#FCFCFA');
+    box(root,xx,wy,-d/2-.026,.48,.60,.05,'#B8D0D4');
+   }
+   const nz=Math.max(2,Math.floor(d/1.4));
+   for(let k=0;k<nz;k++){
+    const zz=-d/2+(k+.5)*d/nz;
+    box(root,w/2+.03,wy,zz,.05,.60,.48,'#BDD5D8');
+    box(root,w/2+.14,wy-.34,zz,.21,.08,.70,'#FCFCFA');
+    box(root,-w/2-.028,wy,zz,.05,.60,.48,C.win);
+   }
   }
-  for(let x=-5.75;x<6;x+=1.45){
-    box(scene,x,.008,4.60,.55,.023,.085,'#47717B');
+  if(floors>2)roofMachine(root,w*.12,-d*.12,h+.6);
+  if(opt.store){
+   const fascia=opt.store==='yellow'?C.yellow:opt.store==='pink'?C.pink:C.teal;
+   box(root,0,.78,d/2+.09,w-.43,1.25,.12,C.glass);
+   box(root,0,1.52,d/2+.30,w-.20,.34,.76,fascia);
+   box(root,0,1.22,d/2+.65,w-.36,.11,.17,'#F9F8F5');
+   box(root,0,.79,d/2+.25,.17,1.25,.12,'#F7F8F5');
   }
-  for(const [x,z,w,h,c] of [
-    [-6.7,-6.2,2.8,5.6,'#285A71'],
-    [-3.5,-7.2,2.1,6.7,'#1B435D'],
-    [4.5,-7.1,3.0,4.5,'#234D69'],
-    [7.0,-5.5,1.9,6.3,'#214056']
-  ]){
-    box(scene,x,h/2-.13,z,w,h,2.2,c);
-    box(scene,x,h-.11,z,w+.1,.13,2.35,'#38829B');
-    for(let j=1;j<4;j++)for(const side of [-1,1]){
-      const wy=0.55+j*1.06;
-      if(wy<h-.35) box(scene,x+side*(w*.22),wy,z+1.135,w*.20,.44,.04,'#7DD5E1');
-    }
-  }
-  function pine(x,z,s){
-    const tree=new THREE.Group();tree.position.set(x,0,z);tree.scale.setScalar(s);scene.add(tree);
-    cyl(tree,0,.45,0,.17,.19,.9,'#6D554A');
-    for(let i=0;i<3;i++){
-      const crown=addMesh(new THREE.ConeGeometry(1.05-i*.19,1.6,7),'#166D73',tree);
-      crown.position.y=1.12+i*.62;
-    }
-    sph(tree,0,2.93,0,.14,'#84DFDB',9);
-  }
-  pine(-6.25,-1.8,.93); pine(6.2,-2.3,.82);
-  pine(-6.8,3.0,.75); pine(6.35,3.1,.90);
-  for(let i=0;i<10;i++){
-    const x=(i%5-2)*2.6, z=i<5?-3.4:3.9;
-    disc(scene,x,.034,z,.38,.18,'#51B1C1',.07);
-  }
+  return root;
+ }
+ const buildings=[
+  [-16,-16,5.8,5.8,6],[-9.2,-15,5.4,5.1,4],[9.8,-16,5.4,5.7,5],[16.1,-15,5,5.6,6],
+  [-16,-8.8,5.5,5.4,4],[-9.3,-9.1,5.7,5.6,3],[9.2,-9.3,5.8,5.1,2],[16,-8.3,5.5,6,4],
+  [-16,9.2,5.5,5.3,4],[-9.2,9.3,5.8,5.6,3],[9.2,9.3,6.2,5.2,4],[16,8.4,5.6,5.8,6],
+  [-16,16,5.9,5.6,5],[-9,16,5.6,6,5],[9.2,16,5.8,5.6,4],[16.2,16,5.7,6.1,5]
+ ];
+ for(const [x,z,w,d,f] of buildings){
+  const store=(x===-9.3&&z===-9.1)?'yellow':(x===9.2&&z===-9.3)?'pink':null;
+  building(x,z,w,d,f,{store});
+ }
+ function lamp(x,z,h=2.6){
+  const p=new T.Group();p.position.set(x,.1,z);scene.add(p);
+  rod(p,[0,0,0],[0,h,0],.065,'#F8F8F5');
+  rod(p,[0,h,0],[.72,h,0],.065,'#FCFCF8');
+  box(p,.78,h-.12,0,.43,.18,.24,'#FDFDF9');
+ }
+ for(const [x,z] of [[-3.3,-10],[3.3,-10],[-3.3,9.8],[3.3,9.8],[-10,-3.3],[9,-3.3],[-10,3.3],[9,3.3]])lamp(x,z);
+ function tree(x,z,s=1){
+  const p=new T.Group();p.position.set(x,0,z);p.scale.setScalar(s);scene.add(p);
+  rod(p,[0,0,0],[0,1.1,0],.16,'#D4D5D0');
+  for(const [dx,dy,dz,r] of [[0,1.75,0,.82],[-.45,1.6,.1,.62],[.43,1.85,-.1,.59],[0,2.24,.09,.56]])sphere(p,dx,dy,dz,r,'#F4F5F2',10);
+ }
+ for(const [x,z,s] of [[-6,-5.5,.75],[6.2,-5.1,.68],[-5.8,5.5,.68],[5.9,6.3,.88],[-13,-5.8,.70],[13.1,6.2,.65]])tree(x,z,s);
 
-  function makePerson(color,skin,pants,hair,x,z,skirt=false){
-    const root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
-    const bob=new THREE.Group();root.add(bob);
-    disc(root,0,.043,0,.83,.53,'#030B13',.45);
-    for(const side of [-1,1]){
-      const leg=cyl(bob,side*.33,.95,0,.22,.24,1.64,pants);
-      leg.rotation.z=side*.055;
-      box(bob,side*.33,.20,.31,.56,.26,.87,'#132638');
-    }
-    const body=cyl(bob,0,2.65,0,.66,skirt?.90:.75,1.85,color);
-    box(bob,0,3.22,.50,.73,.15,.12,'#94CFD7');
-    // Thick collar, neck, head, hair silhouette and readable facial features.
-    cyl(bob,0,3.69,0,.26,.27,.48,skin);
-    sph(bob,0,4.34,0,.78,skin,20);
-    sph(bob,0,4.65,-.22,.79,hair,18);
-    const fringe=addMesh(new THREE.SphereGeometry(.795,18,12,0,Math.PI*2,0,Math.PI/2),hair,bob);
-    fringe.position.set(0,4.54,.02);
-    for(const px of [-.245,.245]){
-      sph(bob,px,4.34,.718,.071,'#162437',10);
-      sph(bob,px+.018,4.36,.772,.020,white,8);
-    }
-    sph(bob,0,4.05,.753,.062,'#B56869',10);
-    const left=new THREE.Group(),right=new THREE.Group();
-    left.position.set(-.78,3.24,.08);
-    right.position.set(.78,3.24,.08);
-    bob.add(left,right);
-    function arm(g,side){
-      const sleeve=cyl(g,0,-.57,0,.235,.20,1.22,color);
-      sleeve.rotation.z=side*.035;
-      sph(g,0,-1.19,0,.22,skin);
-    }
-    arm(left,-1);arm(right,1);
-    return {root,bob,left,right};
-  }
-  const girl=makePerson('#F4777C','#EFC1A4','#1B314B','#172B39',-2.45,.45,true);
-  const friend=makePerson('#2CC5CB','#DDAF91','#243752','#152A3D',2.45,-.35);
-  const parcel=new THREE.Group();
-  girl.bob.add(parcel);
-  parcel.position.set(.80,2.38,.95);
-  box(parcel,0,0,0,1.22,1.0,1.03,'#E6A56E',true);
-  box(parcel,0,.515,0,1.24,.10,1.08,'#F8C58E');
-  box(parcel,0,.013,.532,.22,.96,.032,'#F8D9A3');
-  box(parcel,0,.53,0,.22,.022,1.1,'#F4D39B');
-  box(parcel,.325,.06,.535,.28,.23,.035,'#FAF1D9');
+ const traffic=[];
+ function car(x,z,c,axis=0,scale=1){
+  const p=new T.Group();p.position.set(x,.25,z);p.scale.setScalar(scale);scene.add(p);
+  const q=new T.Group();p.add(q);if(axis)q.rotation.y=Math.PI/2;
+  box(q,0,.34,0,1.18,.54,2.05,c);
+  box(q,0,.72,-.17,1.02,.52,1.12,'#2E4654');
+  box(q,0,.99,-.13,1,.06,1.13,c);
+  for(const s of [-1,1])for(const zz of [-.68,.67]){const wh=cyl(q,s*.68,.27,zz,.23,.23,.17,'#34444C',9);wh.rotation.z=Math.PI/2;}
+  box(q,0,.41,-1.06,.64,.12,.065,'#F5F5E8');
+  box(q,0,.41,1.06,.67,.13,.065,'#DD7C7C');
+  traffic.push({p,axis,x,z});
+ }
+ car(-1.35,-14,C.pink,0,.94);car(1.2,-12.5,C.yellow,0,1.05);
+ car(-1.3,12,C.blue,0,.92);car(1.32,11.2,'#E9A765',0,.87);
+ car(-14,-1.35,'#72B6D6',1,1.05);car(11.2,1.31,C.yellow,1,.89);
+ car(16,-1.34,'#FC8C95',1,.84);car(-10,1.3,'#FFFFFF',1,.91);
+ function bus(x,z){
+  const p=new T.Group();p.position.set(x,.3,z);p.rotation.y=Math.PI/2;scene.add(p);
+  box(p,0,.70,0,1.45,1.32,4.7,C.pink);
+  box(p,0,1.10,0,1.35,.48,4.62,'#F3A9B4');
+  box(p,0,1.52,0,1.33,.12,4.68,'#F6C7C9');
+  for(let zz=-1.85;zz<1.75;zz+=.87){box(p,.755,1.05,zz,.045,.44,.60,'#304755');box(p,-.755,1.05,zz,.045,.44,.60,'#304755');}
+  for(const zz of [-1.55,1.55])for(const s of [-1,1]){const o=cyl(p,s*.79,.3,zz,.36,.36,.16,'#34444B',10);o.rotation.z=Math.PI/2;}
+  traffic.push({p,axis:1,x,z});
+ }
+ bus(-9,-1.32);
 
-  const tinyPhone=new THREE.Group();
-  friend.bob.add(tinyPhone);
-  tinyPhone.position.set(-.89,2.3,.88);
-  tinyPhone.rotation.y=-.18;
-  box(tinyPhone,0,0,0,.81,1.48,.15,'#101A2A');
-  box(tinyPhone,0,.02,.088,.68,1.28,.02,'#F3FBFA');
-  box(tinyPhone,0,.42,.115,.54,.14,.015,'#20BBC6');
-  for(const y of [.15,-.07,-.29]){
-    box(tinyPhone,-.07,y,.114,.4,.08,.01,'#AEC5CD');
-  }
-  // The physically modeled phone gives the close-up its 3D isometric context.
-  const appPhone=new THREE.Group();scene.add(appPhone);
-  appPhone.position.set(0,3.25,1.48);
-  appPhone.rotation.y=-.13;appPhone.rotation.x=-.06;
-  box(appPhone,0,0,-.04,4.15,7.24,.33,'#070F1B',true);
-  box(appPhone,0,0,.135,3.82,6.86,.035,'#E9F4F6');
-  box(appPhone,0,2.95,.17,3.77,.62,.044,'#19B8C7');
-  box(appPhone,0,3.42,.17,.72,.09,.058,'#263E53');
-  for(const [y,w] of [[1.85,3.24],[.86,3.25],[-.15,3.25],[-1.15,3.22]]){
-    box(appPhone,0,y,.178,w,.67,.026,'#D7E6E9');
-    box(appPhone,.22,y+.14,.196,w*.58,.085,.027,'#7EA9B4');
-  }
-  box(appPhone,0,-2.66,.185,3.24,.54,.028,'#11B4BC');
+ function pedestrian(x,z,shirt,scale=.68,skin='#D7AF92'){
+  const p=new T.Group();p.position.set(x,.09,z);p.scale.setScalar(scale);scene.add(p);
+  const body=new T.Group();p.add(body);shadow(p,0,-.01,0,.45,.30,.11);
+  for(const s of [-1,1]){rod(body,[s*.16,.85,0],[s*.16,.13,.07],.105,'#5E6974');box(body,s*.17,.13,.17,.34,.18,.41,'#4D5C66');}
+  cyl(body,0,1.40,0,.37,.40,.95,shirt,9);
+  sphere(body,0,2.17,0,.37,skin,10);
+  sphere(body,0,2.40,-.05,.36,'#79584F',10);
+  for(const s of [-1,1])rod(body,[s*.37,1.68,0],[s*.51,1.13,.05],.14,shirt);
+  return {p,body};
+ }
+ for(const [x,z,c] of [
+  [-2.7,-5.9,C.orange],[2.8,-8.4,C.teal],[-3,6,C.pink],[3,6.9,'#D99D38'],
+  [-7.5,-3.3,'#6D9FB7'],[7.7,3.3,C.teal],[-15,1.9,'#E9865A'],[14,-3.4,'#E3A33E'],
+  [-12,4.6,C.teal],[12.5,4.1,'#EC9B75'],[6.9,-10.8,'#4F95C7']
+ ])pedestrian(x,z,c,.53);
+ const girl=pedestrian(-1.12,1.05,'#EB7892',1.28,'#F1BEA6');
+ const friend=pedestrian(1.36,.8,'#28B3B0',1.25,'#DFB18E');
+ const parcel=new T.Group();girl.body.add(parcel);parcel.position.set(.55,1.45,.57);
+ box(parcel,0,0,0,.76,.65,.67,'#D8A16C');
+ box(parcel,0,.335,0,.78,.052,.70,'#EAC794');
+ box(parcel,0,0,.354,.15,.67,.042,'#F6D9A7');
+ box(parcel,0,.37,0,.15,.024,.74,'#F8DEB0');
+ const handheld=new T.Group();friend.body.add(handheld);handheld.position.set(-.48,1.53,.55);
+ box(handheld,0,.10,0,.43,.82,.13,'#3C5164');
+ box(handheld,0,.1,.08,.36,.71,.04,'#F3F8F5');
+ box(handheld,0,.37,.11,.31,.14,.015,C.teal);
+ for(const y of [.15,-.05])box(handheld,0,y,.11,.22,.08,.014,'#B2CCCF');
 
-  // Decorative airport-flight dotted route, visible as real 3D meshes.
-  const route=new THREE.Group();scene.add(route);
-  route.position.set(0,.06,3.6);
-  for(let i=0;i<13;i++){
-    const a=i/12;
-    const marker=sph(route,-4.6+a*9.2,.12+Math.sin(a*Math.PI)*1.5,-.15+.18*Math.sin(a*3),.085,cyan,8);
-    marker.scale.setScalar(.7+.3*Math.sin(a*Math.PI));
+ const app=new T.Group();scene.add(app);app.rotation.x=-.08;
+ box(app,0,0,0,3.8,6.8,.30,'#26394A');
+ box(app,0,0,.17,3.54,6.46,.055,'#FBFBF8');
+ box(app,0,2.83,.215,3.49,.66,.06,'#60BEC3');
+ box(app,0,3.20,.22,.55,.10,.065,'#FBF9F4');
+ for(const y of [1.8,.88,-.04,-.97]){
+  box(app,0,y,.223,3.10,.67,.035,'#E7EFF0');
+  box(app,.27,y+.10,.253,1.72,.06,.023,'#A7C6CB');
+  box(app,-1.1,y,.252,.5,.43,.026,'#B6D7D5');
+ }
+ box(app,0,-2.63,.24,3.10,.55,.04,C.teal);
+ const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
+ function update(t){
+  const phase=t<4?0:t<7?1:t<11?2:3,sway=Math.sin(t*2.5);
+  girl.body.position.y=.018*sway;friend.body.position.y=.016*Math.sin(t*2.5+1.3);
+  girl.body.rotation.y=phase===1?-.18:0;friend.body.rotation.y=phase===1?-.27:0;
+  girl.body.rotation.z=phase===3?-.075*sway:0;
+  parcel.visible=phase!==2;handheld.visible=phase===1;app.visible=phase>=2;
+  app.position.set(phase===2?0:5.2,phase===2?3.4:3.1,3.8);
+  app.scale.setScalar(phase===2?1.0:.66);
+  for(let i=0;i<traffic.length;i++){
+   const v=traffic[i],speed=(i%3+1)*.13;
+   if(v.axis===0)v.p.position.z=v.z+(t-7.5)*speed*(i%2?1:-1);
+   else v.p.position.x=v.x+(t-7.5)*speed*(i%2?1:-1);
   }
-  const routeStart=sph(route,-4.8,.14,-.15,.23,orange,12);
-  const routeEnd=sph(route,4.75,.14,-.15,.23,cyan,12);
-
-  const ease=v=>{const x=Math.max(0,Math.min(1,v));return x*x*(3-2*x);};
-  function update(t){
-    const phase=t<4?0:t<7?1:t<11?2:3;
-    girl.bob.position.y=.035*Math.sin(t*3.8);
-    friend.bob.position.y=.035*Math.sin(t*3.8+1.4);
-    girl.bob.rotation.y=phase===1?-.17:phase===2?-.10:.02;
-    friend.bob.rotation.y=phase===1?-.22:.03;
-    girl.left.rotation.z=phase===0?-.32+Math.sin(t*2.2)*.16:phase===3?-.65:-.12;
-    girl.right.rotation.z=phase===0?-.16+Math.sin(t*2.6)*.08:phase===3?-.8:-.12;
-    friend.left.rotation.z=phase===1?-.9+Math.sin(t*3)*.05:phase===3?-.72:-.12;
-    friend.right.rotation.z=phase===3?.65:.10;
-    parcel.visible=(phase!==2);
-    tinyPhone.visible=(phase===1);
-    route.visible=(phase===2||phase===3);
-    appPhone.visible=(phase===2||phase===3);
-    if(phase===2){
-      appPhone.position.set(0,3.45,2.2);
-      appPhone.scale.setScalar(.99+ease((t-7)/.8)*.07);
-      girl.root.position.x=-2.45;
-      friend.root.position.x=2.45;
-    }else if(phase===3){
-      appPhone.position.set(4.0,2.90,-.15);
-      appPhone.scale.setScalar(.61);
-      girl.root.position.x=-2.25;
-      friend.root.position.x=1.15;
-      girl.bob.rotation.z=-.025*Math.sin(t*5);
-    }else{
-      girl.root.position.x=-2.45;
-      friend.root.position.x=2.45;
-    }
-    // Gentle camera moves; isometric composition never becomes perspective.
-    const turn=phase===2?ease((t-7)/1.5):phase===3?ease((t-11)/1.1):0;
-    const cx=phase===2?0:phase===3?.1:0;
-    const lookY=phase===2?2.75:2.1;
-    camera.position.set(19-turn*.9,20+turn*.5,24-turn*.6);
-    camera.lookAt(cx,lookY,phase===2?.3:0);
-    camera.zoom=phase===2?1.05:phase===3?1.03:1;
-    camera.updateProjectionMatrix();
-    camera.updateMatrixWorld();
-    scene.updateMatrixWorld(true);
-    renderer.render(scene,camera);
-  }
-  update(0);
-  return {scene,camera,renderer,update};
+  camera.position.set(24+Math.sin(t*.15)*.9,29,33+Math.sin(t*.1)*.9);
+  camera.lookAt(0,1.05,phase===2?1.15:0);
+  camera.zoom=phase===2?1.04:1;
+  camera.updateProjectionMatrix();camera.updateMatrixWorld();
+  scene.updateMatrixWorld(true);renderer.render(scene,camera);
+ }
+ update(0);return{scene,camera,renderer,update};
 }
