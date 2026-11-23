@@ -1,30 +1,38 @@
-# Advertio | USA ⇄ Iran | Top-Down Air Cargo
+# Advertio / USA ⇄ Iran / Creative Top-Down Film
 
-15-second **1080×1920 final / 540×960 preview** film, created entirely in Python Pillow and FFmpeg. The original graphic artwork is drawn programmatically: matte crimson background, ultra-long ivory flight corridor, central red stripe, stylized overhead aircraft, animated parcel and document cards, and independently timed Persian typography. No source-reference image is reused, and **no logo is synthesized**; only the word ADVERTIO appears.
+An independent **18-second six-scene vertical** (9:16) motion graphic, entirely programmatically drawn with Pillow. Film uses original reference **style** (cinematic crimson, overhead product/aircraft, cream materials, strong negative space) but no pixels or logos were copied or recreated.
 
-## Storyboard
+## Creative storyboard
 
-| Time | On-screen copy | Visual |
+| Time | Shot | Persian message |
 | --- | --- | --- |
-| 0–3.4s | «آمریکا به ایران؟ یا ایران به آمریکا؟» | Aircraft enters a pale flight corridor on a deep red field |
-| 3.4–7.2s | «بار یا مدارک داری؟ مسیر هوایی رو انتخاب کن» | Parcel and document props move into view |
-| 7.2–11s | «توی ادورتیو مسافر هوایی پیدا کن» | Airplane progresses along the lane, two-way labels |
-| 11–15s | «حدود ۲ هفته*» / «با مسافران هوایی» / `advertio.net` | Editorial end card, subtle flight-path animation |
+| 0–3s | Opposing USA / Iran labels; camera looks straight down on a long pale flight corridor as a miniature aircraft travels | آمریکا / ایران / بارت رو می‌خوای بفرستی؟ |
+| 3–6s | New cream close-up shot, physical isometric package, passport and documents in separate cards | بار یا مدارک؟ هر دو، با مسافر هوایی |
+| 6–9s | Cinematic burgundy abstract route globe, two route pins and curved aircraft flight | یک مسیر، دو جهت / USA ⇄ IRAN |
+| 9–12s | Mock Advertio passenger listings on an oversized phone; cards appear in succession; message bubble animates | مسافر مسیرت رو توی ادورتیو پیدا کن |
+| 12–15s | Top-down kinetic 14-day calendar with animated progress squares | حدود ۲ هفته* |
+| 15–18s | Final dark editorial flight lane, moving white airplane and website CTA | بار و مدارکت با مسافر هوایی / advertio.net |
 
-**Accuracy:** Advertio connects people with independent travelers; it does not guarantee shipping or act as the airline. «حدود ۲ هفته» is a campaign estimate provided for this brief, not a guaranteed delivery time. Verify operational accuracy before publishing; actual timing, permitted items, documentation, customs and airline rules depend on the route and traveler agreement.
+**Accuracy:** Advertio provides listings and connects senders with independent travelers. It is not an airline, carrier or guaranteed-delivery service. The approximate two-week line is campaign copy, subject to route, travel, customs, airline requirements and agreement with the traveler. The 14-day motif should not be interpreted as a guaranteed delivery deadline.
 
-## Commands
+## Required typography (original uploaded asset)
 
-`npm run lint` validates the source.
+**All Persian copy uses the original `بز/BYekan.ttf` already in this repository**, loaded from the existing original binary file (relative path `../../بز/BYekan.ttf` from repo root resolution; actual code derives the repo root robustly). The font is never recreated, downloaded, or replaced when running in GitHub Actions. English metadata uses the shared `assets/fonts/Vazirmatn-Bold.ttf`. Font shaping uses Pillow with libraqm.
 
-`npm run samples` generates ten full-size storyboard sample JPEGs and `quick-preview-contact-sheet.jpg`.
+`ADVERTIO_FONT_OVERRIDE` exists solely for developers testing without the repository's original font; do **not** set it in the publishing workflow. Production renders fail if original BYekan is missing.
 
-`ADVERTIO_RENDER_MODE=preview npm run render` generates silent 15s `preview.mp4`, 540×960 at 10 fps.
+## Render isolated folder
 
-`ADVERTIO_RENDER_MODE=final npm run render` generates silent 15s `output.mp4`, 1080×1920 at 30 fps.
+```bash
+cd videos/us-iran-air-cargo-topdown
+npm run lint
+npm run samples                                     # 10 x 720×1280 JPG + montage
+ADVERTIO_RENDER_MODE=preview npm run render         # 540×960, 10 fps, 18s MP4
+ADVERTIO_RENDER_MODE=final npm run render           # 1080×1920, 30 fps, 18s MP4
+```
 
-Dependencies: Python 3.12, Pillow 11.3 (with libraqm), FFmpeg, Node 22+ to execute the npm scripts. Text uses shared original `assets/fonts/Vazirmatn` fonts checked into this repository; the local rendering fallback is only for developers without shared assets. No third-party downloads are needed at render time beyond Pillow.
+Requires Python 3.12, Pillow 11.3 with libraqm, ffmpeg, Node 22 for npm scripts. No third-party 3D engine, browser or external rendered asset required. Video is silent by design: narration/music can be added after approval. Only the original uploaded `Advertio Logo.png` is approved for any future logo insert; **this film uses wordmark text only and never generates a logo**.
 
-## Manual GitHub Actions
+## GitHub Actions
 
-Open the repository's `Actions` tab, select **Advertio Manual Render - Folder and Quick Preview / Preview / Final**, choose this branch and `folder=us-iran-air-cargo-topdown`, then choose `quick-preview`, `preview`, or `final`. The workflow renders the selected folder only. Auto-render generates a quick-preview artifact for changes in this folder.
+Select the `feature/us-iran-air-cargo-topdown` branch and folder `us-iran-air-cargo-topdown` using the *Advertio Manual Render* workflow. Choose quick-preview (10 stills), preview (MP4) or final (MP4). Pushes to this folder automatically generate the isolated preview MP4; no unrelated project is rendered.
