@@ -53,3 +53,6 @@ This revision switches both compositions to **true portrait** (native 1080×1920
 
 ### Correct preview scaling and visual validation
 Preview composition uses the **same 1080×1920 authoring canvas** as Final at 15 fps, and the Remotion CLI renders it with `--scale=0.5` into 540×960 pixels. This prevents nested AbsoluteFill/Sequence viewports from truncating the bottom of portrait scenes. CI inspects an actual 9.5-second preview frame and asserts that rich content remains visible in the lower half, instead of merely checking MP4 dimensions.
+
+### Enhanced detail revision
+The video now uses the original-drawn `AirlinerDetailed` with layered swept wings, winglets, flap/aileron seam geometry, two distinct turbofan nacelles with inlet fans, paired cabin windows, cockpit glazing, doors, nose sensor, reflective fuselage and navigation lights. The aircraft's nose follows the flight-path tangent at every frame. `CargoParcelDetailed` adds shipping labels, folding, tape, barcode and 3D shading. `ProductPhone` builds a readable demo (not a real listing) with airport codes YYZ → IKA, route information, cargo card, four listing fields, chat action and bottom navigation. `TerminalBackdrop` and `AirportDistrict` add miniature airport architecture, baggage equipment and runway markings. Corner counters remain deleted. 
