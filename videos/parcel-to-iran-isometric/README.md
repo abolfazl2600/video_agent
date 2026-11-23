@@ -53,3 +53,6 @@ The scene was rebuilt to follow the supplied reference image: multiple matte ivo
 Typography: the original Vazirmatn Regular and Bold font binaries stored at `../../assets/fonts/` are rendered in charcoal/teal over minimal translucent ivory editorial cards. No generated or reinterpreted Advertio logo is introduced. The source image is an art-direction reference; its pixels are not embedded into the video.
 
 **Render policy:** pushing these scene changes runs only the 10 fps `preview.mp4` workflow for this folder. A 30 fps Final must be selected explicitly in GitHub Actions.
+
+### Preview render efficiency
+The 3D city now models only building facades facing the orthographic camera; rear-wall windows that would be completely invisible are not constructed. Box surfaces use cached, slightly different face colors to approximate the gentle daylight shading of the reference without expensive real-time lighting. This reduces SVG workload while improving architectural readability.

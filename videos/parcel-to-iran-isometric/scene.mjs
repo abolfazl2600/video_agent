@@ -16,7 +16,18 @@ export function createFilm(){
  const mats=new Map();
  const mat=c=>{if(!mats.has(c))mats.set(c,new T.MeshBasicMaterial({color:c,side:T.DoubleSide}));return mats.get(c);};
  const mesh=(p,g,c)=>{const o=new T.Mesh(g,mat(c));p.add(o);return o};
- function box(p,x,y,z,w,h,d,c){const o=mesh(p,new T.BoxGeometry(w,h,d),c);o.position.set(x,y,z);return o;}
+ // Cache soft, directional porcelain shading; camera sees +X and +Z facets.
+ const boxColors=new Map();
+ function box(p,x,y,z,w,h,d,c){
+  let colors=boxColors.get(c);
+  if(!colors){
+   const base=new T.Color(c);
+   colors=[.90,.97,1.04,.84,.93,.98].map(k=>mat('#'+base.clone().multiplyScalar(k).getHexString()));
+   boxColors.set(c,colors);
+  }
+  const o=new T.Mesh(new T.BoxGeometry(w,h,d),colors);
+  o.position.set(x,y,z);p.add(o);return o;
+ }
  function sphere(p,x,y,z,r,c,n=10){const o=mesh(p,new T.SphereGeometry(r,n,7),c);o.position.set(x,y,z);return o;}
  function cyl(p,x,y,z,r1,r2,h,c,n=10){const o=mesh(p,new T.CylinderGeometry(r1,r2,h,n),c);o.position.set(x,y,z);return o;}
  function rod(p,a,b,r,c){const v=new T.Vector3(...a),w=new T.Vector3(...b),o=mesh(p,new T.CylinderGeometry(r,r,v.distanceTo(w),7),c);o.position.copy(v).add(w).multiplyScalar(.5);o.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),w.sub(v).normalize());return o;}
@@ -54,19 +65,19 @@ export function createFilm(){
   box(root,0,h+.53,0,w+.48,.13,d+.48,'#E4E8E6');
   for(let j=0;j<floors;j++){
    const wy=.90+j*1.27;
-   const n=Math.max(2,Math.floor(w/1.35));
+   // Only render the camera-visible +Z and +X facades. The occluded rear
+   // windows previously tripled SVG triangles without improving the picture.
+   const n=Math.max(2,Math.floor(w/2.1));
    for(let k=0;k<n;k++){
     const xx=-w/2+(k+.5)*w/n;
-    box(root,xx,wy,d/2+.025,.48,.60,.05,C.win);
-    box(root,xx,wy-.33,d/2+.14,.71,.08,.21,'#FCFCFA');
-    box(root,xx,wy,-d/2-.026,.48,.60,.05,'#B8D0D4');
+    box(root,xx,wy,d/2+.025,.52,.68,.05,C.win);
+    box(root,xx,wy-.36,d/2+.14,.71,.08,.20,'#FCFCFA');
    }
-   const nz=Math.max(2,Math.floor(d/1.4));
+   const nz=Math.max(2,Math.floor(d/2.15));
    for(let k=0;k<nz;k++){
     const zz=-d/2+(k+.5)*d/nz;
-    box(root,w/2+.03,wy,zz,.05,.60,.48,'#BDD5D8');
-    box(root,w/2+.14,wy-.34,zz,.21,.08,.70,'#FCFCFA');
-    box(root,-w/2-.028,wy,zz,.05,.60,.48,C.win);
+    box(root,w/2+.03,wy,zz,.05,.67,.53,'#BDD5D8');
+    box(root,w/2+.14,wy-.36,zz,.20,.08,.70,'#FCFCFA');
    }
   }
   if(floors>2)roofMachine(root,w*.12,-d*.12,h+.6);
