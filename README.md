@@ -5,6 +5,7 @@ This repository contains **independent, folder-scoped video projects**, so a cha
 ## Video projects
 
 - [Original dark-tech airplane film (`بز/`)](./%D8%A8%D8%B2/) — 15-second vertical Three.js flight film, rendered by the existing `render-tiktok.yml` workflow.
+- [3D isometric mother's supplement passenger-cargo campaign (`videos/mother-supplement-network/`)](./videos/mother-supplement-network/) — 15-second ivory/orange connection-network ad; folder-only 10-frame Quick Preview, plus optional Preview and Final MP4.
 - [3D isometric parcel-to-Iran ad (`videos/parcel-to-iran-isometric/`)](./videos/parcel-to-iran-isometric/) — four-scene, 15-second Persian passenger-cargo story. Output: 1080×1920 MP4.
 
 ## Shared Persian typography
@@ -17,7 +18,7 @@ The `parcel-to-iran-isometric` project uses these assets for all Persian caption
 
 Open **Actions → Render Advertio Video — Select Folder and Quality → Run workflow**. Select the **branch** (e.g. `feature/restyle-soft-minimal-isometric`) and then use the manual controls:
 
-1. **folder** (dropdown): choose `parcel-to-iran-isometric`, or `custom` for a future project.
+1. **folder** (dropdown): choose `parcel-to-iran-isometric`, or `custom` with `custom_folder=mother-supplement-network` for the new campaign.
 2. **custom_folder** (optional): only when `folder=custom`, enter the name inside `videos/`, without the prefix.
 3. **mode** (dropdown): choose `preview` (default) or `final` (explicit manual high-quality render).
 
@@ -39,6 +40,6 @@ videos/your-video-slug/
   ...              # every asset needed to render this video
 ```
 
-The project's `render` command must respect `ADVERTIO_RENDER_MODE=preview|final` (defaults to preview) and produce `preview.mp4` or `output.mp4`, respectively. New projects can define their own preview/final resolutions, durations, fps and dependencies; only `parcel-to-iran-isometric` currently enforces exact 10/30 fps and 15-second duration. The existing legacy `بز/` renderer has its own workflow and has not yet been migrated to this preview/final protocol.
+The project's `render` command must respect `ADVERTIO_RENDER_MODE=preview|final` (defaults to preview) and produce `preview.mp4` or `output.mp4`, respectively. New projects can define their own preview/final resolutions, durations, fps and dependencies; the parcel and supplement-network projects use 15-second, 10-fps Preview / 30-fps Final modes. The existing legacy `بز/` renderer has its own workflow and has not yet been migrated to this preview/final protocol.
 
 **Brand assets:** Never AI-generate or redraw the Advertio logo. Use the original uploaded `Advertio Logo.png` for any designs that include the logo; plain text brand mentions are permitted.
