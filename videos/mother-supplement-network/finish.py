@@ -45,7 +45,7 @@ def line(d,x0,y0,x1,y1,c=INK,w=3):
 def header(d,t):
     en(d,62,62,'ADVERTIO',28,INK,True,anchor='lm')
     d.ellipse((215,55,225,65),fill=(*ORANGE,255))
-    en(d,655,61,'01 / 04',17,SUBTLE,False,anchor='rm')
+    en(d,655,61,f'{1 if t<4 else 2 if t<7 else 3 if t<11 else 4:02d} / 04',17,SUBTLE,False,anchor='rm')
     line(d,62,102,104,102,ORANGE,5)
     line(d,118,102,148,102,INK,5)
     line(d,160,102,182,102,PALE,5)
@@ -54,12 +54,12 @@ def header(d,t):
     en(d,64,1245,'advertio.net',22,INK,True,anchor='lm')
     en(d,654,1245,f'{min(15,int(t)):02d} / 15 s',18,SUBTLE,False,anchor='rm')
 def lower(d,tag,s,a):
-    en(d,360,920,tag,20,SUBTLE,True,a=a)
-    rtl(d,360,985,s,28,INK,False,a=a,max_w=610)
+    en(d,360,1105,tag,20,SUBTLE,True,a=a)
+    rtl(d,360,1155,s,28,INK,False,a=a,max_w=610)
     # Editorial graphic mark reminiscent of the supplied sparse dashed diagram
-    line(d,268,1055,314,1055,ORANGE,8)
-    line(d,330,1055,376,1055,INK,8)
-    line(d,392,1055,435,1055,ORANGE,8)
+    line(d,268,1191,314,1191,ORANGE,7)
+    line(d,330,1191,376,1191,INK,7)
+    line(d,392,1191,435,1191,ORANGE,7)
 def text_scene(d,t):
     if t<4:
         a=255*smooth((t+.1)/.45)
@@ -84,9 +84,9 @@ def text_scene(d,t):
         rtl(d,360,205,'بیش از ۱۱٬۰۰۰',73,INK,True,a)
         rtl(d,360,299,'آگهی حمل بار و مسافر',40,ORANGE,True,a)
         rtl(d,360,376,'در ادورتیو منتشر شده',37,INK,True,a)
-        rtl(d,360,972,'ادورتیو؛ ارتباط با مسافران',35,INK,True,a)
-        en(d,360,1058,'advertio.net',42,INK,True,a=a)
-        rtl(d,360,1142,'حمل مکمل تابع مقررات شرکت حمل‌ونقل و گمرک است',20,SUBTLE,False,a,max_w=624)
+        
+        en(d,360,1127,'advertio.net',43,INK,True,a=a)
+        rtl(d,360,1174,'حمل مکمل تابع مقررات شرکت حمل‌ونقل و گمرک است',18,SUBTLE,False,a,max_w=624)
 def frame(i):
     t=i/FPS
     src=P/'frames'/f'{i:04d}.png'
@@ -97,7 +97,7 @@ def frame(i):
     d=ImageDraw.Draw(layer)
     # White edges preserve readability over 3D network centered in the frame.
     d.rectangle((0,0,W,430),fill=(248,248,246,236))
-    d.rectangle((0,895,W,H),fill=(248,248,246,237))
+    d.rectangle((0,1080,W,H),fill=(248,248,246,242))
     header(d,t)
     text_scene(d,t)
     return Image.alpha_composite(im,layer).convert('RGB')
