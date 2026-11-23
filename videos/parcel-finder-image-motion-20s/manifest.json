@@ -1,0 +1,53 @@
+{
+  "name": "advertio-package-finder-story",
+  "duration_seconds": 20,
+  "width": 720,
+  "height": 1280,
+  "fps_preview": 15,
+  "fps_final": 30,
+  "styles": [
+    "isometric-inspired 2.5d",
+    "original user-supplied brand mark",
+    "large lower viewport",
+    "animated pan zoom"
+  ],
+  "scenes": [
+    {
+      "id": 1,
+      "start": 0,
+      "end": 3,
+      "asset": "assets/scene-01.jpg",
+      "headline": "یه بسته، ۱۰ هزار کیلومتر فاصله!"
+    },
+    {
+      "id": 2,
+      "start": 3,
+      "end": 7,
+      "asset": "assets/scene-02.jpg",
+      "headline": "فقط هنوز همدیگه رو پیدا نکردن!"
+    },
+    {
+      "id": 3,
+      "start": 7,
+      "end": 11,
+      "asset": "assets/scene-03.jpg",
+      "headline": "آگهی بذار، مسافر پیدا کن."
+    },
+    {
+      "id": 4,
+      "start": 11,
+      "end": 16,
+      "asset": "assets/scene-04.jpg",
+      "chat": "من جمعه می‌رم تهران، می‌تونم بسته‌ات رو ببرم!"
+    },
+    {
+      "id": 5,
+      "start": 16,
+      "end": 20,
+      "asset": "assets/scene-05.jpg",
+      "cta": "بار داری؟ مسافرت رو پیدا کن!"
+    }
+  ],
+  "logo": "assets/Advertio Logo.png",
+  "logo_note": "Exact bytes of the original user-uploaded approved brand asset."
+}
