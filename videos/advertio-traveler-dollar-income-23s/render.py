@@ -233,7 +233,7 @@ def poster():
  print('CONTACT',p,flush=True)
 
 def video():
- out=ROOT/'renders'/('preview.mp4' if MODE!='final' else 'output.mp4')
+ out=ROOT/('preview.mp4' if MODE!='final' else 'output.mp4')
  cmd=['ffmpeg','-hide_banner','-loglevel','error','-y','-f','rawvideo','-pix_fmt','rgb24','-s',f'{W}x{H}','-r',str(FPS),'-i','-','-an','-c:v','libx264','-preset','veryfast' if MODE!='final' else 'fast','-crf','21' if MODE!='final' else '19','-pix_fmt','yuv420p','-movflags','+faststart',str(out)]
  process=subprocess.Popen(cmd,stdin=subprocess.PIPE)
  try:
