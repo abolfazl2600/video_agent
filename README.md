@@ -15,7 +15,13 @@ The `parcel-to-iran-isometric` project uses these assets for all Persian caption
 
 ## Folder-based GitHub Actions
 
-Open **Actions → Render Advertio Video by Folder → Run workflow**. In `folder` enter the project slug **without `videos/`** (e.g. `parcel-to-iran-isometric`). **Mode defaults to Preview**. Final must be manually chosen only when a full-quality video is explicitly requested.
+Open **Actions → Render Advertio Video — Select Folder and Quality → Run workflow**. Select the **branch** (e.g. `feature/restyle-soft-minimal-isometric`) and then use the manual controls:
+
+1. **folder** (dropdown): choose `parcel-to-iran-isometric`, or `custom` for a future project.
+2. **custom_folder** (optional): only when `folder=custom`, enter the name inside `videos/`, without the prefix.
+3. **mode** (dropdown): choose `preview` (default) or `final` (explicit manual high-quality render).
+
+Click **Run workflow** to render **only the selected folder** from the selected branch. Pushes that modify `videos/<folder>/**` render Preview automatically; pushes never trigger Final.
 
 - **Preview (default):** 10 fps at 540×960 for this isometric project; produces `preview.mp4`. Every push affecting a `videos/<folder>/**` project runs Preview only.
 - **Final (manual only):** 30 fps at 1080×1920 for this isometric project; produces `output.mp4`.
