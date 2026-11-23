@@ -13,7 +13,8 @@ A standalone 15-second, vertical, **real 3D isometric** short-form ad for Advert
 
 ## Output
 
-- `output.mp4` — H.264, 1080×1920, 30 fps, exactly 15 seconds; no audio track.
+- **Default Preview:** `preview.mp4` — H.264, 540×960, 10 fps, 15 seconds; no audio track. The Three.js scene renders at 360×640 to make iteration significantly faster.
+- **Explicit Final:** `output.mp4` — H.264, 1080×1920, 30 fps, 15 seconds; no audio track. Final mode uses the original 720×1280 geometry master and high-quality encoding.
 - Characters, buildings, trees, parcels, phones and the surrounding stage are authored in 3D.
 - The on-phone screen is **an illustrated mockup**, not a screenshot of production Advertio.
 - No AI-made brand logo is used. If a logo is later added, only the original uploaded `Advertio Logo.png` may be used; never generate, trace or approximate a replacement.
@@ -27,14 +28,18 @@ sudo apt-get update -qq && sudo apt-get install -y ffmpeg
 npm install
 python3 -m pip install Pillow==11.3.0
 npm run lint
-npm run render
+npm run render                                # 10 fps preview (default)
+ADVERTIO_RENDER_MODE=final npm run render     # 30 fps final, explicit
 ```
 
 Optional representative frame previews: `npm run samples`. The final video renderer runs without building other projects in this repository. A Linux environment with the system DejaVu fonts is expected.
 
 ## GitHub Actions
 
-**Actions → Render Advertio Video by Folder → Run workflow** and enter `parcel-to-iran-isometric` as the folder. GitHub automatically renders this video on commits changing `videos/parcel-to-iran-isometric/**`; edits to other video folders do not rebuild it. Download `advertio-parcel-to-iran-isometric-<run number>` from Artifacts.
+**Actions → Render Advertio Video by Folder → Run workflow** and enter `parcel-to-iran-isometric` as the folder.
+- **Preview** is preselected for manual runs and is always used automatically for pushes changing this folder. Download `advertio-parcel-to-iran-isometric-preview-<run number>` (contains `preview.mp4`).
+- **Final** must be selected manually after explicit approval/request; no push can start a Final render. Download `advertio-parcel-to-iran-isometric-final-<run number>` (contains `output.mp4`).
+- Other folders are not rebuilt when this folder changes.
 
 ### CI reliability
-The workflow installs FFmpeg and FFprobe **before** 3D frame rendering, so encoding dependencies are validated early instead of failing after the 450-frame render. The initial run failed during encoding because FFmpeg was missing; this project update triggers the corrected folder-only workflow automatically.
+The workflow installs FFmpeg and FFprobe **before** 3D frame rendering, so encoding dependencies are validated early instead of failing after the 450-frame Final render. The initial run failed during encoding because FFmpeg was missing. Preview now renders only 150 frames by default; Final still uses 450 frames.

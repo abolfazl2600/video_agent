@@ -5,11 +5,19 @@ This project intentionally does not recreate or generate an Advertio logo.
 from functools import lru_cache
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
+import os
 import subprocess
 import sys
 
 P = Path(__file__).resolve().parent
-W, H, FPS, COUNT = 720, 1280, 30, 450
+MODE = os.environ.get('ADVERTIO_RENDER_MODE','preview').strip().lower()
+if MODE not in ('preview','final'):
+    raise ValueError(f'Unknown ADVERTIO_RENDER_MODE: {MODE}')
+W,H = 720,1280   # master typography canvas; preview 3D gets upsampled onto this
+FPS = 10 if MODE == 'preview' else 30
+COUNT = 15*FPS
+OUTPUT = P/('preview.mp4' if MODE == 'preview' else 'output.mp4')
+OUT_W,OUT_H = (540,960) if MODE == 'preview' else (1080,1920)
 FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 BOLD = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
 CYAN = (61, 225, 223)
@@ -128,6 +136,8 @@ def make_frame(i):
     t=i/FPS
     src=P/'frames'/f'{i:04d}.png'
     im=Image.open(src).convert('RGBA')
+    if im.size!=(W,H):
+        im=im.resize((W,H),Image.Resampling.BILINEAR)
     im=background_tint(im)
     layer=Image.new('RGBA',(W,H),(0,0,0,0))
     d=ImageDraw.Draw(layer)
@@ -139,19 +149,21 @@ def make_frame(i):
     return Image.alpha_composite(im,layer).convert('RGB')
 
 def render_samples():
-    for i in [0,45,105,135,195,240,285,335,395,449]:
-        filename=P/f'preview-{i:03d}.jpg'
+    for t in [0,1.5,3.5,4.5,6.5,8,9.5,11.5,13.5,14.9]:
+        i=min(COUNT-1,round(t*FPS))
+        filename=P/f'frame-sample-{i:03d}.jpg'
         make_frame(i).save(filename,quality=91)
         print(filename)
 
 def render_mp4():
-    out=P/'output.mp4'
+    out=OUTPUT
     cmd=[
         'ffmpeg','-hide_banner','-loglevel','error','-y',
         '-f','rawvideo','-pix_fmt','rgb24','-s',f'{W}x{H}',
         '-r',str(FPS),'-i','-','-an',
-        '-vf','scale=1080:1920:flags=lanczos',
-        '-c:v','libx264','-preset','fast','-crf','19',
+        '-vf',f'scale={OUT_W}:{OUT_H}:flags=lanczos',
+        '-c:v','libx264','-preset','ultrafast' if MODE=='preview' else 'fast',
+        '-crf','28' if MODE=='preview' else '19',
         '-pix_fmt','yuv420p','-movflags','+faststart',str(out)
     ]
     proc=subprocess.Popen(cmd,stdin=subprocess.PIPE)

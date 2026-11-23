@@ -7,6 +7,14 @@ on:
         description: 'Video folder name inside videos/ (example: parcel-to-iran-isometric)'
         required: true
         type: string
+      mode:
+        description: 'Preview by default; Final only when explicitly requested'
+        required: true
+        default: preview
+        type: choice
+        options:
+          - preview
+          - final
   push:
     paths:
       - 'videos/**'
@@ -64,6 +72,9 @@ jobs:
     if: ${{ needs.select-projects.outputs.folders != '[]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 55
+    env:
+      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'preview' }}
+      VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
       matrix:
@@ -98,22 +109,32 @@ jobs:
         run: npm run lint
       - name: Render only this folder
         run: npm run render
-      - name: Verify final MP4
+      - name: Verify Preview or Final MP4
         run: |
-          test -s output.mp4
-          ffprobe -v error -show_entries stream=width,height,avg_frame_rate -show_entries format=duration -of default=noprint_wrappers=1 output.mp4
           python - <<'PY'
-          import json, subprocess
-          p = subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=width,height,avg_frame_rate:format=duration','-of','json','output.mp4'])
-          d=json.loads(p)
-          v=d['streams'][0]
-          assert int(v['width']) > 0 and int(v['height']) > 0, v
-          assert float(d['format']['duration']) > 0, d
+          import json, os, pathlib, subprocess
+          mode=os.environ['ADVERTIO_RENDER_MODE']
+          name='preview.mp4' if mode=='preview' else 'output.mp4'
+          path=pathlib.Path(name)
+          assert path.is_file() and path.stat().st_size>1000, f'Missing output: {path}'
+          raw=subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=width,height,avg_frame_rate:format=duration','-of','json',name],text=True)
+          obj=json.loads(raw)
+          stream=obj['streams'][0]
+          w,h=int(stream['width']),int(stream['height'])
+          num,den=map(int,stream['avg_frame_rate'].split('/'))
+          fps=num/den
+          duration=float(obj['format']['duration'])
+          assert w>0 and h>0 and fps>0 and duration>0, (w,h,fps,duration)
+          if os.environ['VIDEO_FOLDER']=='parcel-to-iran-isometric':
+              expected=(540,960,10) if mode=='preview' else (1080,1920,30)
+              assert (w,h)==expected[:2] and abs(fps-expected[2])<0.01, (mode,w,h,fps)
+              assert 14.9<=duration<=15.1, (mode,duration)
+          print(f'{mode}: {name}, {w}x{h}, {fps}fps, {duration:.2f}s')
           PY
-      - name: Upload this video's MP4 only
+      - name: Upload only the selected mode's MP4
         uses: actions/upload-artifact@v4
         with:
-          name: advertio-${{ matrix.folder }}-${{ github.run_number }}
-          path: videos/${{ matrix.folder }}/output.mp4
+          name: advertio-${{ matrix.folder }}-${{ env.ADVERTIO_RENDER_MODE }}-${{ github.run_number }}
+          path: videos/${{ matrix.folder }}/${{ env.ADVERTIO_RENDER_MODE == 'preview' && 'preview.mp4' || 'output.mp4' }}
           retention-days: 30
           if-no-files-found: error
