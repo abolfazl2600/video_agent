@@ -1,4 +1,4 @@
-name: Advertio Cargo - One-Time Full HD Final
+name: Advertio Cargo - Instagram Reels Full HD Final
 run-name: Cargo Final | ${{ github.ref_name }}
 
 on:
@@ -47,10 +47,10 @@ jobs:
           v=next(s for s in result['streams'] if s['codec_type']=='video')
           fps=float(Fraction(v['avg_frame_rate']))
           duration=float(result['format']['duration'])
-          assert (v['width'],v['height'])==(1920,1080),(v['width'],v['height'])
+          assert (v['width'],v['height'])==(1080,1920),(v['width'],v['height'])
           assert abs(fps-30)<.01,fps
           assert 19.8<=duration<=20.2,duration
-          print('FINAL VERIFIED:',p,'1920x1080, 30fps,',duration,'seconds')
+          print('FINAL VERIFIED:',p,'1080x1920, 30fps,',duration,'seconds')
           PY
       - name: Upload Full HD Final Video
         uses: actions/upload-artifact@v4

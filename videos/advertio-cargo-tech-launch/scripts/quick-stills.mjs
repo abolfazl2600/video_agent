@@ -18,7 +18,7 @@ try{
   const frame=Math.round(seconds[i]*30);
   const name=String(i+1).padStart(2,'0')+'-'+String(seconds[i]).replace('.','p')+'s.jpg';
   await renderStill({serveUrl,composition,puppeteerInstance:browser,
-    output:path.join(output,name),frame,imageFormat:'jpeg',jpegQuality:82,scale:.35,logLevel:'error'});
+    output:path.join(output,name),frame,imageFormat:'jpeg',jpegQuality:82,scale:.5,logLevel:'error'});
   console.log('Quick Preview',i+1,'/',seconds.length,seconds[i]+'s',name);
  }
 }finally{

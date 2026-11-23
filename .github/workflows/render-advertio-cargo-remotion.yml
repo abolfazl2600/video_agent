@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'quick-preview = 10 frames, preview = MP4 540p, final = MP4 1080p'
+        description: 'quick-preview = 10 portrait frames, preview = Reels 540x960, final = Reels 1080x1920'
         required: true
         default: preview
         type: choice
@@ -85,7 +85,7 @@ jobs:
           o=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',str(path)]))
           s=next(x for x in o['streams'] if x['codec_type']=='video')
           n,d=map(int,s['avg_frame_rate'].split('/'))
-          expected=(1920,1080,30) if mode=='final' else (960,540,15)
+          expected=(1080,1920,30) if mode=='final' else (540,960,15)
           assert (s['width'],s['height'],round(n/d))==expected,(s,expected)
           duration=float(o['format']['duration'])
           assert 19.8<=duration<=20.2,duration

@@ -3,7 +3,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 files=sorted((ROOT/'out'/'stills').glob('*.jpg'))
 assert len(files)==10,(len(files),files)
-width,height=672,378
+width,height=270,480
 margin,gap,label=24,14,43
 canvas=Image.new('RGB',(5*width+4*gap+2*margin,2*(height+label)+gap+2*margin),(250,253,255))
 draw=ImageDraw.Draw(canvas)
