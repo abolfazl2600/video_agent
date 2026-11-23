@@ -36,3 +36,7 @@ Requires Python 3.12, Pillow 11.3 with libraqm, ffmpeg, Node 22 for npm scripts.
 ## GitHub Actions
 
 Select the `feature/us-iran-air-cargo-topdown` branch and folder `us-iran-air-cargo-topdown` using the *Advertio Manual Render* workflow. Choose quick-preview (10 stills), preview (MP4) or final (MP4). Pushes to this folder automatically generate the isolated preview MP4; no unrelated project is rendered.
+
+### Render validation
+
+GitHub Actions renders the preview with the repository's original `بز/BYekan.ttf`; no `ADVERTIO_FONT_OVERRIDE` is configured in CI. The 18-second run is validated against 540×960 at 10 fps, while manual Final uses 1080×1920 at 30 fps.
