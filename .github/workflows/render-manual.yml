@@ -1,6 +1,7 @@
 name: Advertio Manual Render - Folder and Preview or Final
 
-# Dedicated manual-only workflow; separate from the auto-preview on push.
+# Dedicated manual render workflow. A no-render push on this YAML registers
+# the manual control with GitHub; actual video rendering requires Run workflow.
 on:
   workflow_dispatch:
     inputs:
@@ -24,12 +25,26 @@ on:
         options:
           - preview
           - final
+  push:
+    paths:
+      - '.github/workflows/render-manual.yml'
 
 permissions:
   contents: read
 
 jobs:
+  bootstrap-registration:
+    name: Register manual workflow (no video render)
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify workflow registration
+        run: |
+          echo 'Manual Run workflow control is defined on the default branch.'
+          echo 'This is a lightweight registration run. No video was rendered.'
+
   select-projects:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     outputs:
       folders: ${{ steps.select.outputs.folders }}
@@ -90,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
+      ADVERTIO_RENDER_MODE: ${{ inputs.mode }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
