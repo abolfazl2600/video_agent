@@ -87,6 +87,12 @@ jobs:
           command -v ffmpeg
           command -v ffprobe
           ffmpeg -version
+      - name: Verify Chrome for accelerated WebGL
+        if: matrix.folder == 'parcel-to-iran-isometric'
+        shell: bash
+        run: |
+          command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser
+          (google-chrome --version || chromium --version || true)
       - name: Install project dependencies
         run: |
           npm install --no-audit --no-fund

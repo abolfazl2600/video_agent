@@ -74,3 +74,14 @@ This branch intentionally **does not change main**. It explores a quieter, premi
 - No generated logo. If required, only the original Advertio Logo.png is allowed.
 
 **Production rules:** default to Quick Preview (10 JPGs + contact sheet); full Preview and Final are explicit manual choices. All output remains isolated to this folder and branch.
+
+## Accelerated WebGL renderer
+
+The scene is rendered using Three.js **WebGLRenderer** in a headless Chromium browser controlled with `puppeteer-core`. The browser entry point is bundled by esbuild. This replaces expensive per-frame SVG generation and SVG-to-PNG rasterization, while keeping the existing orthographic camera, 3D scene, scene timing, Persian finishing, and output dimensions.
+
+- `npm run samples`: 10 selected 360x640 canvas captures, composited at 720x1280 with Pillow and a contact sheet; no MP4 encoding.
+- `npm run render`: full frame sequence (Preview 150 frames / Final 450 frames), then existing Pillow/FFmpeg finishing.
+- Requires Chromium/Google Chrome (`CHROME_PATH` or `PUPPETEER_EXECUTABLE_PATH` may override auto detection). On headless Linux, Chromium uses software-based SwiftShader when no hardware GPU is available.
+- Performance is measured from the GitHub Actions logs; browser startup and system graphics capabilities affect total time. Do not assume a fixed speedup until CI completes.
+- The exact original Advertio logo is the only approved brand asset. No AI-generated logo is used.
+

@@ -1,21 +1,21 @@
 import * as T from 'three';
-import {SVGRenderer} from 'three/addons/renderers/SVGRenderer.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 // Advertio / SOFT MINIMAL ISOMETRIC DIORAMA.
 // Orthographic camera at a 35-degree elevation, matte ivory clay geometry,
 // restrained pastels, gently bevelled silhouettes and subtle simulated AO.
-// This SVGRenderer composition deliberately uses cached geometric face shading
+// This WebGLRenderer composition preserves cached geometric face shading
 // and layered contact shadows. It does not claim physically traced global light.
 // The original brand logo is NEVER fabricated or approximated.
 export function createFilm(){
  const scene=new T.Scene();
  scene.background=new T.Color('#F7F8F6');
  const camera=new T.OrthographicCamera(-8,8,14.23,-14.23,.1,160);
- const renderer=new SVGRenderer();
- renderer.setSize(720,1280);
+ const renderer=new T.WebGLRenderer({antialias:false,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+ renderer.setPixelRatio(1);
+ renderer.setSize(720,1280,false);
  renderer.setClearColor('#F7F8F6');
- renderer.overdraw=.2;
+ renderer.outputColorSpace=T.SRGBColorSpace;
  const C={
   ground:'#F0F2EF',road:'#E3E7E6',walk:'#FCFCFA',white:'#FAFBF9',
   stone:'#F1F3F1',shadow:'#D3DAD7',win:'#D7E7E8',glass:'#DBEAEB',

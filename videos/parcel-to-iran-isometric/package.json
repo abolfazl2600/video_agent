@@ -4,15 +4,18 @@
   "type": "module",
   "description": "Standalone 3D isometric 15-second Persian cargo delivery short",
   "scripts": {
-    "lint": "node --check scene.mjs && node --check render.mjs && python3 -m py_compile finish.py",
-    "frames": "node render.mjs",
+    "lint": "node --check scene.mjs && node --check render.mjs && node --check browser.mjs && python3 -m py_compile finish.py",
+    "build": "esbuild browser.mjs --bundle --format=iife --minify --outfile=dist/film.js",
+    "frames": "npm run build && node render.mjs",
     "encode": "python3 finish.py",
     "render": "npm run frames && npm run encode",
-    "samples": "node render.mjs --samples && python3 finish.py --samples"
+    "samples": "npm run build && node render.mjs --samples && python3 finish.py --samples"
   },
   "dependencies": {
-    "linkedom": "^0.18.12",
-    "sharp": "^0.34.0",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "puppeteer-core": "^24.20.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   }
 }
