@@ -1,0 +1,5 @@
+build/
+*.mp4
+frame-sample-*.jpg
+quick-preview-contact-sheet.jpg
+__pycache__/
