@@ -13,21 +13,24 @@ All new Persian-language video compositions must load **Vazirmatn** from the che
 
 The `parcel-to-iran-isometric` project uses these assets for all Persian captions and interface labels (and Latin brand/domain labels). The existing legacy `بز/` composition still has its own styling and renderer; it has not been automatically migrated.
 
-## Folder-based GitHub Actions
+## GitHub Actions — manual rendering
 
-Open **Actions → Render Advertio Video — Select Folder and Quality → Run workflow**. Select the **branch** (e.g. `feature/restyle-soft-minimal-isometric`) and then use the manual controls:
+Use the **dedicated manual-only workflow**:
 
-1. **folder** (dropdown): choose `parcel-to-iran-isometric`, or `custom` for a future project.
-2. **custom_folder** (optional): only when `folder=custom`, enter the name inside `videos/`, without the prefix.
-3. **mode** (dropdown): choose `preview` (default) or `final` (explicit manual high-quality render).
+**[Advertio Manual Render - Folder and Preview or Final](https://github.com/abolfazl2600/video_agent/actions/workflows/render-manual.yml)**
 
-Click **Run workflow** to render **only the selected folder** from the selected branch. Pushes that modify `videos/<folder>/**` render Preview automatically; pushes never trigger Final.
+The workflow is committed to `main` (GitHub's default branch) and also exists on `feature/restyle-soft-minimal-isometric`. Open **Actions**, select **Advertio Manual Render - Folder and Preview or Final** in the left sidebar, and then click **Run workflow** in the top-right. Select:
 
-- **Preview (default):** 10 fps at 540×960 for this isometric project; produces `preview.mp4`. Every push affecting a `videos/<folder>/**` project runs Preview only.
-- **Final (manual only):** 30 fps at 1080×1920 for this isometric project; produces `output.mp4`.
-- Actions check the selected output and upload one video artifact for that folder and mode. Neither an unrelated video change nor a workflow-only change triggers a full-quality render.
+1. **Branch:** `main` or `feature/restyle-soft-minimal-isometric`.
+2. **folder:** `parcel-to-iran-isometric` (or `custom` to select a future folder inside `videos/`).
+3. **custom_folder:** required only if `folder=custom`; enter its directory name without `videos/`.
+4. **mode:** `preview` (default, 10 fps / 540×960 / `preview.mp4`) or `final` (30 fps / 1080×1920 / `output.mp4`).
 
-When code in `videos/<folder>/**` is pushed, the workflow detects the changed folder(s) and renders **only those folder(s)** as separate matrix jobs. Jobs are isolated, including their dependencies, video output, artifact names and concurrency groups. Changes to the original `بز/**` continue to use its existing dedicated workflow.
+Click **Run workflow**. The job validates and renders only the chosen folder, then uploads its MP4 to **Artifacts**.
+
+## GitHub Actions — automatic rendering
+
+The separate [Advertio Auto Render - Changed Folders](https://github.com/abolfazl2600/video_agent/actions/workflows/render-video.yml) is for pushes only. It selects only changed folders inside `videos/`. For `parcel-to-iran-isometric`, pushes run **Quick Preview** (10 sample JPG frames and a contact sheet). Other compatible video folders run their default Preview. Pushes never trigger Final. Changes to `بز/**` continue to use the legacy dedicated workflow.
 
 ### Adding future videos
 
