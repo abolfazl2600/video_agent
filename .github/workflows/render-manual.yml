@@ -122,7 +122,7 @@ jobs:
           command -v ffprobe
           ffmpeg -version
       - name: Verify Chrome for accelerated WebGL
-        if: matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network'
+        if: matrix.folder == 'parcel-to-iran-isometric'
         shell: bash
         run: |
           command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser

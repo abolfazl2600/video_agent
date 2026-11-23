@@ -48,4 +48,4 @@ The project's `render` command must respect `ADVERTIO_RENDER_MODE=preview|final`
 
 ## Mother supplement campaign
 
-The standalone `videos/mother-supplement-network/` project is included on main with a folder-scoped, WebGL-accelerated Quick Preview (10 image samples plus a contact sheet) and manually selectable Preview/Final MP4 outputs. Open **Actions → Advertio Manual Render** and choose `mother-supplement-network` as the folder. Advertio connects customers with travelers; it is not the carrier. Any supplement or parcel must comply with airline, carrier, destination, and customs rules.
+The standalone `videos/mother-supplement-network/` project is included on main with a folder-scoped, Pillow-rendered Quick Preview (10 image samples plus a contact sheet) and manually selectable Preview/Final MP4 outputs. Open **Actions → Advertio Manual Render** and choose `mother-supplement-network` as the folder. Advertio connects customers with travelers; it is not the carrier. Any supplement or parcel must comply with airline, carrier, destination, and customs rules.

@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {SVGRenderer} from 'three/addons/renderers/SVGRenderer.js';
 
 // Original isometric geometry based on the supplied minimal orange connection-graph
 // art direction. No third-party image or AI-generated brand mark is embedded.
@@ -8,11 +9,8 @@ export function createFilm(){
   const BLACK='#222326', WHITE='#FAFAF7', GREY='#D8D9D6', BLUE='#A5C9D2';
   scene.background=new T.Color(BG);
   const camera=new T.OrthographicCamera(-7.6,7.6,13.51,-13.51,.1,120);
-  const renderer=new T.WebGLRenderer({antialias:false,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
-  renderer.setPixelRatio(1);
-  renderer.setSize(720,1280,false);
-  renderer.setClearColor(BG);
-  renderer.outputColorSpace=T.SRGBColorSpace;
+  const renderer=new SVGRenderer();
+  renderer.setSize(720,1280);renderer.setClearColor(BG);renderer.overdraw=.2;
   const colors=new Map();
   function mat(c){if(!colors.has(c))colors.set(c,new T.MeshBasicMaterial({color:c,side:T.DoubleSide}));return colors.get(c);}
   function group(x=0,y=0,z=0){const g=new T.Group();g.position.set(x,y,z);scene.add(g);return g;}
