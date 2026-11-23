@@ -1,33 +1,10 @@
-name: Render Advertio Video — Select Folder and Quality
+name: Advertio Auto Render - Changed Folders
 
-# In Actions → Run workflow, choose the git branch, a video project folder,
-# and Quick Preview/Preview/Final. Parcel-folder pushes auto-render Quick Preview.
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('{0} | {1} | {2}', inputs.mode, inputs.folder, github.ref_name) || format('Auto Render | {0}', github.ref_name) }}
+# On push: Quick Preview for the existing parcel project; Preview for others.
+# For manually selected folder and quality use render-manual.yml.
+run-name: Auto Render | ${{ github.ref_name }}
 
 on:
-  workflow_dispatch:
-    inputs:
-      folder:
-        description: 'Video project to render (inside videos/)'
-        required: true
-        default: parcel-to-iran-isometric
-        type: choice
-        options:
-          - parcel-to-iran-isometric
-          - custom
-      custom_folder:
-        description: 'Only when folder=custom: enter new video folder slug'
-        required: false
-        type: string
-      mode:
-        description: 'Quick Preview (10 JPGs), Preview MP4, or Final MP4'
-        required: true
-        default: quick-preview
-        type: choice
-        options:
-          - quick-preview
-          - preview
-          - final
   push:
     paths:
       - 'videos/**'
@@ -48,9 +25,6 @@ jobs:
       - id: select
         name: Select only the requested or changed video folders
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          REQUESTED_FOLDER: ${{ inputs.folder }}
-          CUSTOM_FOLDER: ${{ inputs.custom_folder }}
           BEFORE_SHA: ${{ github.event.before }}
           AFTER_SHA: ${{ github.sha }}
         shell: bash
@@ -58,35 +32,21 @@ jobs:
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os, pathlib, re, subprocess, sys
           root = pathlib.Path("videos")
-          if os.environ["EVENT_NAME"] == "workflow_dispatch":
-              selected = os.environ["REQUESTED_FOLDER"].strip()
-              custom = os.environ.get("CUSTOM_FOLDER", "").strip()
-              if selected == "custom":
-                  if not custom:
-                      sys.exit("When selecting custom, enter a value in custom_folder")
-                  folders = [custom]
-              else:
-                  if custom:
-                      sys.exit("Clear custom_folder unless folder=custom")
-                  folders = [selected]
+          before, after = os.environ.get("BEFORE_SHA", ""), os.environ["AFTER_SHA"]
+          if not before or set(before) == {"0"}:
+              args = ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", after]
           else:
-              before, after = os.environ.get("BEFORE_SHA", ""), os.environ["AFTER_SHA"]
-              if not before or set(before) == {"0"}:
-                  args = ["git", "diff-tree", "--no-commit-id", "--name-only", "-r", after]
-              else:
-                  args = ["git", "diff", "--name-only", before, after, "--", "videos/"]
-              changed = subprocess.check_output(args, text=True).splitlines()
-              folders = sorted({p.split("/")[1] for p in changed
-                                if p.startswith("videos/") and len(p.split("/")) >= 3})
+              args = ["git", "diff", "--name-only", before, after, "--", "videos/"]
+          changed = subprocess.check_output(args, text=True).splitlines()
+          folders = sorted({p.split("/")[1] for p in changed
+                            if p.startswith("videos/") and len(p.split("/")) >= 3})
           validated = []
           for name in folders:
               if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
                   sys.exit("Invalid video folder: " + name)
               project = root / name
               if not (project / "package.json").is_file():
-                  if os.environ["EVENT_NAME"] == "workflow_dispatch":
-                      sys.exit("No runnable video project in: " + str(project))
-                  continue  # a removed folder must not break other builds
+                  continue  # removed folder
               validated.append(name)
           print("folders=" + json.dumps(validated, separators=(",", ":")))
           print("Selected video folders:", ", ".join(validated) if validated else "(none)", file=sys.stderr)
@@ -98,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
+      ADVERTIO_RENDER_MODE: ${{ matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview' }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
