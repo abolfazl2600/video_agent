@@ -1,8 +1,8 @@
 name: Render Advertio Video — Select Folder and Quality
 
 # In Actions → Run workflow, choose the git branch, a video project folder,
-# and Preview/Final. A push to videos/** always runs Preview only.
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('{0} | {1} | {2}', inputs.mode, inputs.folder, github.ref_name) || format('Auto Preview | {0}', github.ref_name) }}
+# and Quick Preview/Preview/Final. Parcel-folder pushes auto-render Quick Preview.
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('{0} | {1} | {2}', inputs.mode, inputs.folder, github.ref_name) || format('Auto Render | {0}', github.ref_name) }}
 
 on:
   workflow_dispatch:
@@ -20,11 +20,12 @@ on:
         required: false
         type: string
       mode:
-        description: 'Output quality (Preview is the default)'
+        description: 'Quick Preview (10 JPGs), Preview MP4, or Final MP4'
         required: true
-        default: preview
+        default: quick-preview
         type: choice
         options:
+          - quick-preview
           - preview
           - final
   push:
@@ -97,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'preview' }}
+      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
@@ -118,6 +119,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install FFmpeg (required for video encoding)
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
         shell: bash
         run: |
           sudo apt-get update -qq
@@ -144,9 +146,37 @@ jobs:
           PY
       - name: Validate only the selected video
         run: npm run lint
-      - name: Render only this folder
-        run: npm run render
+      - name: Render selected mode for this folder
+        shell: bash
+        run: |
+          if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
+            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ]; then
+              echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
+              exit 1
+            fi
+            ADVERTIO_RENDER_MODE=preview npm run samples
+          else
+            npm run render
+          fi
+      - name: Verify Quick Preview image set
+        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          frames=sorted(Path('.').glob('frame-sample-*.jpg'))
+          assert len(frames)==10, f'Expected 10 images, got {len(frames)}'
+          for path in frames:
+              with Image.open(path) as im:
+                  assert im.size==(720,1280), (path,im.size)
+          sheet=Path('quick-preview-contact-sheet.jpg')
+          assert sheet.is_file() and sheet.stat().st_size>1000, 'Missing contact sheet'
+          with Image.open(sheet) as im:
+              im.verify()
+          print('Quick Preview: 10 verified frames and one contact sheet')
+          PY
       - name: Verify Preview or Final MP4
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
         run: |
           python - <<'PY'
           import json, os, pathlib, subprocess
@@ -168,7 +198,18 @@ jobs:
               assert 14.9<=duration<=15.1, (mode,duration)
           print(f'{mode}: {name}, {w}x{h}, {fps}fps, {duration:.2f}s')
           PY
+      - name: Upload Quick Preview images
+        if: env.ADVERTIO_RENDER_MODE == 'quick-preview'
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-${{ matrix.folder }}-quick-preview-${{ github.run_number }}
+          path: |
+            videos/${{ matrix.folder }}/frame-sample-*.jpg
+            videos/${{ matrix.folder }}/quick-preview-contact-sheet.jpg
+          retention-days: 30
+          if-no-files-found: error
       - name: Upload only the selected mode's MP4
+        if: env.ADVERTIO_RENDER_MODE != 'quick-preview'
         uses: actions/upload-artifact@v4
         with:
           name: advertio-${{ matrix.folder }}-${{ env.ADVERTIO_RENDER_MODE }}-${{ github.run_number }}
