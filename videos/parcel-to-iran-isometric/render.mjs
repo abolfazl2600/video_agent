@@ -26,6 +26,6 @@ for(const index of ids){
   film.update(index/FPS);
   const raw=film.renderer.domElement.outerHTML;
   const svg=raw.includes('xmlns=')?raw:raw.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" ');
-  await sharp(Buffer.from(svg)).flatten({background:'#F0F1EF'}).png().toFile('frames/'+String(index).padStart(4,'0')+'.png');
+  await sharp(Buffer.from(svg)).flatten({background:'#F7F8F6'}).png().toFile('frames/'+String(index).padStart(4,'0')+'.png');
   if(index%(FPS*2)===0)console.log('Rendered frame',index,'of',FRAME_COUNT);
 }

@@ -56,3 +56,17 @@ Typography: the original Vazirmatn Regular and Bold font binaries stored at `../
 
 ### Preview render efficiency
 The 3D city now models only building facades facing the orthographic camera; rear-wall windows that would be completely invisible are not constructed. Box surfaces use cached, slightly different face colors to approximate the gentle daylight shading of the reference without expensive real-time lighting. This reduces SVG workload while improving architectural readability.
+
+## Soft Minimal Isometric Diorama — Branch prototype
+
+This branch intentionally **does not change main**. It explores a quieter, premium variation of the existing four-scene parcel story using:
+
+- A fixed orthographic isometric view at approximately 35° elevation.
+- Matte, light ivory and very light gray clay-like buildings, roads and soft surfaces.
+- Rounded BoxGeometry bevels on the architectural masses, vehicles and phones; restrained 2-step geometric segments for reasonable SVG rendering performance.
+- Subtle multi-layered contact-shadow discs and cached face-tone differences to approximate soft ambient occlusion and a large diffused studio key light. SVGRenderer has no physically-based GI or ray-traced AO, so these effects are stylized, **not real physically computed illumination**.
+- Fewer architectural masses for more negative space; lower-saturation pastel highlights on transit and clothing.
+- Matching low-contrast ivory typographic cards using Vazirmatn from shared `assets/fonts/`.
+- No generated logo. If required, only the original Advertio Logo.png is allowed.
+
+**Production rules:** default to Preview mode (10 fps, 540x960, `preview.mp4`); never run Final automatically. All output remains isolated to this folder and branch.

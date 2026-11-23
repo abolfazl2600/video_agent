@@ -26,14 +26,14 @@ for required in (FONT, BOLD):
     if not required.is_file():
         raise FileNotFoundError(f'Required shared Persian font is missing: {required}')
 # Porcelain-city editorial palette (adapted to the uploaded style reference).
-CYAN = (49, 164, 172)
+CYAN = (105, 161, 161)
 WHITE = (255, 255, 252)
-INK = (36, 54, 67)
-DARK = (36, 54, 67)
-CORAL = (230, 114, 133)
-GOLD = (238, 177, 85)
-MINT = (221, 242, 239)
-SUBTLE = (119, 141, 151)
+INK = (66, 85, 96)
+DARK = (66, 85, 96)
+CORAL = (211, 145, 161)
+GOLD = (227, 186, 128)
+MINT = (232, 246, 242)
+SUBTLE = (132, 152, 156)
 
 @lru_cache(None)
 def font(size, bold=False):
@@ -67,23 +67,31 @@ def latin(draw,x,y,txt,size=24,color=INK,alpha=255,anchor='mm',bold=True):
     draw.text((x,y),txt,font=f,anchor=anchor,fill=(*color,int(alpha)))
 
 def panel(draw,xy,fill,outline,radius=28,width=2):
+    """Floating translucent ivory plate with almost imperceptible contact shadow."""
+    x0,y0,x1,y1 = xy
+    a = fill[3] / 255 if len(fill)==4 else 1
+    for extra,dy,opacity in ((10,9,7),(6,5,12),(2,3,16)):
+        shade=int(opacity*a)
+        if shade:
+            draw.rounded_rectangle((x0-extra,y0+dy,x1+extra,y1+dy+extra),
+                                   radius=radius+extra, fill=(131,150,146,shade))
     draw.rounded_rectangle(xy,radius=radius,fill=fill,outline=outline,width=width)
 
 def background_tint(image):
     # Bright reference: no midnight overlays, scanlines or large dark vignette.
     layer=Image.new('RGBA',(W,H),(0,0,0,0))
     d=ImageDraw.Draw(layer)
-    d.rectangle((0,0,W,117),fill=(253,252,249,222))
-    d.rectangle((0,117,W,120),fill=(217,221,220,102))
-    d.rectangle((0,1170,W,H),fill=(252,251,248,230))
+    d.rectangle((0,0,W,117),fill=(253,254,251,214))
+    d.rectangle((0,117,W,119),fill=(222,229,225,62))
+    d.rectangle((0,1170,W,H),fill=(253,254,251,214))
     return Image.alpha_composite(image,layer)
 
 def draw_header(draw,t):
     latin(draw,55,61,'ADVERTIO',27,INK,anchor='lm')
-    draw.ellipse((247,53,261,67),fill=(*CORAL,255))
-    rtl(draw,660,63,'ارسال بار مسافری',24,(70,102,113),anchor='rm',max_width=330)
+    draw.ellipse((247,53,261,67),fill=(*CORAL,235))
+    rtl(draw,660,63,'ارسال بار مسافری',24,(107,132,139),anchor='rm',max_width=330)
     draw.line((52,1167,668,1167),fill=(194,205,206,190),width=2)
-    draw.rounded_rectangle((55,1190,665,1197),radius=4,fill=(218,225,223,200))
+    draw.rounded_rectangle((55,1190,665,1197),radius=4,fill=(226,233,230,210))
     draw.rounded_rectangle((55,1190,55+round(610*t/15),1197),
                            radius=4,fill=(*CYAN,245))
     latin(draw,56,1245,'Advertio.net',22,INK,anchor='lm')
@@ -92,8 +100,8 @@ def draw_header(draw,t):
 def scene_one(draw,t):
     a=ease(t/.38)
     panel(draw,(129,162,591,234),(255,255,253,int(229*a)),(222,227,224,int(180*a)),radius=22)
-    rtl(draw,360,196,'کانادا  ←  ایران',29,(74,125,133),alpha=255*a)
-    panel(draw,(58,274,662,481),(255,255,252,int(244*a)),(219,223,221,int(225*a)),radius=30)
+    rtl(draw,360,196,'کانادا  ←  ایران',29,(105,148,149),alpha=255*a)
+    panel(draw,(58,274,662,481),(255,255,252,int(245*a)),(229,235,231,int(180*a)),radius=30)
     draw.rounded_rectangle((90,310,102,447),radius=6,fill=(*CORAL,int(248*a)))
     rtl(draw,374,351,'کاش یکی بود این بسته رو',38,INK,alpha=255*a,max_width=535)
     rtl(draw,374,424,'برام ببره ایران!',46,INK,alpha=255*a,max_width=530)
@@ -106,7 +114,7 @@ def scene_two(draw,t):
     a=ease((t-4)/.38)
     panel(draw,(82,169,638,246),(255,255,252,int(229*a)),(224,231,228,int(170*a)),radius=22)
     rtl(draw,360,209,'دوستش گوشی رو نشون می‌ده',30,(80,126,129),alpha=255*a)
-    panel(draw,(65,287,655,490),(255,255,252,int(242*a)),(195,224,219,int(230*a)),radius=30)
+    panel(draw,(65,287,655,490),(255,255,252,int(243*a)),(221,233,230,int(180*a)),radius=30)
     draw.rounded_rectangle((95,320,106,462),radius=6,fill=(*CYAN,int(244*a)))
     rtl(draw,365,356,'چرا تو ادورتیو',47,INK,alpha=255*a,max_width=530)
     rtl(draw,365,433,'آگهی نمی‌ذاری؟',47,INK,alpha=255*a,max_width=535)
@@ -124,14 +132,14 @@ def scene_three(draw,t):
     a=ease((t-7)/.4)
     panel(draw,(85,173,635,278),(249,252,249,int(249*a)),(202,223,219,int(225*a)),radius=25)
     rtl(draw,360,216,'ثبت آگهی در ادورتیو',37,INK,alpha=255*a)
-    rtl(draw,360,259,'سریع و ساده',24,(49,151,153),alpha=255*a)
+    rtl(draw,360,259,'سریع و ساده',24,(95,157,159),alpha=255*a)
     if t<8.75:
         b=ease((t-7.1)/.5)
         panel(draw,(99,342,621,818),(255,255,252,int(235*a*b)),(206,226,223,int(222*a*b)),radius=30)
         form_row(draw,374,'مبدأ','کانادا',a*b)
         form_row(draw,473,'مقصد','ایران',a*b)
         form_row(draw,572,'نوع مرسوله','بسته',a*b)
-        panel(draw,(161,708,559,784),(69,175,173,int(250*a*b)),(51,158,156,int(255*a*b)),radius=21)
+        panel(draw,(161,708,559,784),(128,187,184,int(250*a*b)),(108,168,165,int(210*a*b)),radius=21)
         rtl(draw,360,748,'ثبت آگهی',34,WHITE,alpha=255*a*b)
         panel(draw,(174,922,546,990),(255,255,250,int(234*b)),(219,231,225,int(140*b)),radius=18)
         rtl(draw,360,957,'چند لحظه بعد...',26,(80,118,124),alpha=255*b)
@@ -142,7 +150,7 @@ def scene_three(draw,t):
         rtl(draw,360,411,'پیام جدید از مسافر',29,(33,126,127),alpha=255*b)
         rtl(draw,360,516,'من هفته دیگه می‌رم ایران،',35,INK,alpha=255*b,max_width=520)
         rtl(draw,360,590,'می‌تونم ببرمش!',41,INK,alpha=255*b,max_width=510)
-        panel(draw,(173,651,547,724),(64,178,175,int(250*b)),(42,159,154,int(250*b)),radius=20)
+        panel(draw,(173,651,547,724),(128,187,184,int(250*b)),(108,168,165,int(210*b)),radius=20)
         rtl(draw,360,689,'مشاهده پیام',31,WHITE,alpha=255*b)
 
 def scene_four(draw,t):
@@ -150,10 +158,10 @@ def scene_four(draw,t):
     panel(draw,(65,214,655,448),(255,255,252,int(243*a)),(213,226,222,int(230*a)),radius=30)
     draw.rounded_rectangle((94,250,107,409),radius=6,fill=(*CORAL,int(246*a)))
     rtl(draw,365,289,'مسافرت رو پیدا کن،',45,INK,alpha=255*a,max_width=530)
-    rtl(draw,365,377,'بارتو ارسال کن!',51,(40,145,147),alpha=255*a,max_width=520)
+    rtl(draw,365,377,'بارتو ارسال کن!',51,(92,155,158),alpha=255*a,max_width=520)
     panel(draw,(85,956,635,1101),(255,255,252,int(244*a)),(188,216,210,int(235*a)),radius=28)
     latin(draw,360,1006,'Advertio.net',44,INK,alpha=255*a)
-    rtl(draw,360,1070,'ارسال بار مسافری',29,(39,142,146),alpha=255*a)
+    rtl(draw,360,1070,'ارسال بار مسافری',29,(92,155,158),alpha=255*a)
 
 def make_frame(i):
     t=i/FPS
