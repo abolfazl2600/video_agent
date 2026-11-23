@@ -60,3 +60,28 @@ Typography: the original Vazirmatn Regular and Bold font binaries stored at `../
 
 ### Preview render efficiency
 The 3D city now models only building facades facing the orthographic camera; rear-wall windows that would be completely invisible are not constructed. Box surfaces use cached, slightly different face colors to approximate the gentle daylight shading of the reference without expensive real-time lighting. This reduces SVG workload while improving architectural readability.
+
+## Soft Minimal Isometric Diorama — Branch prototype
+
+This branch intentionally **does not change main**. It explores a quieter, premium variation of the existing four-scene parcel story using:
+
+- A fixed orthographic isometric view at approximately 35° elevation.
+- Matte, light ivory and very light gray clay-like buildings, roads and soft surfaces.
+- Rounded BoxGeometry bevels on the architectural masses, vehicles and phones; restrained 2-step geometric segments for reasonable SVG rendering performance.
+- Subtle multi-layered contact-shadow discs and cached face-tone differences to approximate soft ambient occlusion and a large diffused studio key light. SVGRenderer has no physically-based GI or ray-traced AO, so these effects are stylized, **not real physically computed illumination**.
+- Fewer architectural masses for more negative space; lower-saturation pastel highlights on transit and clothing.
+- Matching low-contrast ivory typographic cards using Vazirmatn from shared `assets/fonts/`.
+- No generated logo. If required, only the original Advertio Logo.png is allowed.
+
+**Production rules:** default to Quick Preview (10 JPGs + contact sheet); full Preview and Final are explicit manual choices. All output remains isolated to this folder and branch.
+
+## Accelerated WebGL renderer
+
+The scene is rendered using Three.js **WebGLRenderer** in a headless Chromium browser controlled with `puppeteer-core`. The browser entry point is bundled by esbuild. This replaces expensive per-frame SVG generation and SVG-to-PNG rasterization, while keeping the existing orthographic camera, 3D scene, scene timing, Persian finishing, and output dimensions.
+
+- `npm run samples`: 10 selected 360x640 canvas captures, composited at 720x1280 with Pillow and a contact sheet; no MP4 encoding.
+- `npm run render`: full frame sequence (Preview 150 frames / Final 450 frames), then existing Pillow/FFmpeg finishing.
+- Requires Chromium/Google Chrome (`CHROME_PATH` or `PUPPETEER_EXECUTABLE_PATH` may override auto detection). On headless Linux, Chromium uses software-based SwiftShader when no hardware GPU is available.
+- Performance is measured from the GitHub Actions logs; browser startup and system graphics capabilities affect total time. Do not assume a fixed speedup until CI completes.
+- The exact original Advertio logo is the only approved brand asset. No AI-generated logo is used.
+

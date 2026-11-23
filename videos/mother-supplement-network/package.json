@@ -1,0 +1,13 @@
+{
+  "name": "advertio-mother-supplement-network",
+  "private": true,
+  "type": "module",
+  "description": "Standalone 15-second orange-network isometric ad with deterministic fast raster rendering",
+  "scripts": {
+    "lint": "python3 -m py_compile isometric.py finish.py",
+    "frames": "python3 isometric.py",
+    "encode": "python3 finish.py",
+    "render": "npm run frames && npm run encode",
+    "samples": "python3 isometric.py --samples && python3 finish.py --samples"
+  }
+}
