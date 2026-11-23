@@ -72,12 +72,12 @@ def backdrop():
         delta=rng.choice((-5,-3,-1,2,3,5))
         draw.point((x,y),fill=tuple(max(0,min(255,i+delta)) for i in p))
     # restrained central corridor shadow, visually close to an overhead studio render
-    draw.polygon([(303,210),(482,210),(482,H),(303,H)],fill=(93,33,35))
-    draw.polygon([(282,220),(454,220),(453,H),(282,H)],fill=(112,50,51))
-    draw.polygon([(287,219),(445,219),(445,H),(287,H)],fill=(216,212,207))
-    draw.polygon([(295,219),(436,219),(436,H),(295,H)],fill=(239,236,230))
-    draw.polygon([(356,219),(374,219),(374,H),(356,H)],fill=(173,38,43))
-    draw.line([(367,225),(367,H)],fill=(129,29,35),width=5)
+    draw.polygon([(303,318),(482,318),(482,H),(303,H)],fill=(93,33,35))
+    draw.polygon([(282,320),(454,320),(453,H),(282,H)],fill=(112,50,51))
+    draw.polygon([(287,319),(445,319),(445,H),(287,H)],fill=(216,212,207))
+    draw.polygon([(295,319),(436,319),(436,H),(295,H)],fill=(239,236,230))
+    draw.polygon([(356,319),(374,319),(374,H),(356,H)],fill=(173,38,43))
+    draw.line([(367,325),(367,H)],fill=(129,29,35),width=5)
     # top-right pill, cropped by the frame, as in the reference composition
     draw.rounded_rectangle((525,-34,763,44),radius=40,fill=(231,22,47))
     return im
