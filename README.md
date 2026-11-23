@@ -7,6 +7,12 @@ This repository contains **independent, folder-scoped video projects**, so a cha
 - [Original dark-tech airplane film (`بز/`)](./%D8%A8%D8%B2/) — 15-second vertical Three.js flight film, rendered by the existing `render-tiktok.yml` workflow.
 - [3D isometric parcel-to-Iran ad (`videos/parcel-to-iran-isometric/`)](./videos/parcel-to-iran-isometric/) — four-scene, 15-second Persian passenger-cargo story. Output: 1080×1920 MP4.
 
+## Shared Persian typography
+
+All new Persian-language video compositions must load **Vazirmatn** from the checked-in font files at `assets/fonts/`. Use `Vazirmatn-Regular.ttf` for supporting text and `Vazirmatn-Bold.ttf` for primary headlines. The font files are version-controlled and do not need to be downloaded during CI rendering. See [font usage and licensing](./assets/fonts/README.md).
+
+The `parcel-to-iran-isometric` project uses these assets for all Persian captions and interface labels (and Latin brand/domain labels). The existing legacy `بز/` composition still has its own styling and renderer; it has not been automatically migrated.
+
 ## Folder-based GitHub Actions
 
 Open **Actions → Render Advertio Video by Folder → Run workflow**. In `folder` enter the project slug **without `videos/`** (e.g. `parcel-to-iran-isometric`). **Mode defaults to Preview**. Final must be manually chosen only when a full-quality video is explicitly requested.

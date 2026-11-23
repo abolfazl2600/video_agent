@@ -18,8 +18,13 @@ FPS = 10 if MODE == 'preview' else 30
 COUNT = 15*FPS
 OUTPUT = P/('preview.mp4' if MODE == 'preview' else 'output.mp4')
 OUT_W,OUT_H = (540,960) if MODE == 'preview' else (1080,1920)
-FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-BOLD = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+# Always use the repository's version-controlled Persian fonts, not runner fonts.
+FONT_DIR = P.parents[1] / 'assets' / 'fonts'
+FONT = FONT_DIR / 'Vazirmatn-Regular.ttf'
+BOLD = FONT_DIR / 'Vazirmatn-Bold.ttf'
+for required in (FONT, BOLD):
+    if not required.is_file():
+        raise FileNotFoundError(f'Required shared Persian font is missing: {required}')
 CYAN = (61, 225, 223)
 WHITE = (238, 250, 252)
 INK = (7, 21, 35)
@@ -28,18 +33,36 @@ CORAL = (247, 121, 124)
 
 @lru_cache(None)
 def font(size, bold=False):
-    return ImageFont.truetype(BOLD if bold else FONT, size)
+    return ImageFont.truetype(str(BOLD if bold else FONT), size)
+
+def fit_font(draw, text, size, bold, max_width, direction=None):
+    """Keep Persian labels in the safe zone with the chosen Vazirmatn weight."""
+    if not max_width:
+        return font(size, bold)
+    while size > 16:
+        f = font(size, bold)
+        kwargs = {'direction': direction, 'language': 'fa'} if direction else {}
+        box = draw.textbbox((0, 0), text, font=f, **kwargs)
+        if box[2]-box[0] <= max_width:
+            return f
+        size -= 1
+    return font(size, bold)
 
 def ease(x):
     x = max(0, min(1, x))
     return x*x*(3-2*x)
 
-def rtl(draw, x, y, txt, size, color=WHITE, bold=True, alpha=255, anchor='mm'):
-    draw.text((x,y), txt, font=font(size,bold), anchor=anchor,
-              language='fa', direction='rtl', fill=(*color,int(alpha)))
+def rtl(draw, x, y, txt, size, color=WHITE, bold=True, alpha=255, anchor='mm', max_width=None):
+    # Center titles use up to 610 px; right-aligned form values use 405 px.
+    if max_width is None:
+        max_width = 405 if anchor == 'rm' else 605
+    f = fit_font(draw,txt,size,bold,max_width,'rtl')
+    draw.text((x,y),txt,font=f,anchor=anchor,
+              language='fa',direction='rtl',fill=(*color,int(alpha)))
 
 def latin(draw,x,y,txt,size=24,color=WHITE,alpha=255,anchor='mm',bold=True):
-    draw.text((x,y),txt,font=font(size,bold),anchor=anchor,fill=(*color,int(alpha)))
+    f = fit_font(draw,txt,size,bold,590)
+    draw.text((x,y),txt,font=f,anchor=anchor,fill=(*color,int(alpha)))
 
 def panel(draw, xy, fill, outline, radius=28, width=3):
     draw.rounded_rectangle(xy, radius=radius, fill=fill, outline=outline, width=width)

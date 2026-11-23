@@ -105,6 +105,19 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           python -m pip install Pillow==11.3.0
+      - name: Validate shared Persian font assets
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import ImageFont, features
+          root = Path.cwd().parents[1]
+          assert features.check('raqm'), 'Pillow libraqm is required for correct Persian shaping'
+          for filename in ('Vazirmatn-Regular.ttf', 'Vazirmatn-Bold.ttf'):
+              f = root / 'assets' / 'fonts' / filename
+              assert f.is_file(), f'Missing shared font: {f}'
+              font = ImageFont.truetype(str(f), 36)
+              print(f'Loaded shared Persian font: {f.name} ({f.stat().st_size} bytes)')
+          PY
       - name: Validate only the selected video
         run: npm run lint
       - name: Render only this folder

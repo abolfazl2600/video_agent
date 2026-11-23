@@ -17,6 +17,7 @@ A standalone 15-second, vertical, **real 3D isometric** short-form ad for Advert
 - **Explicit Final:** `output.mp4` — H.264, 1080×1920, 30 fps, 15 seconds; no audio track. Final mode uses the original 720×1280 geometry master and high-quality encoding.
 - Characters, buildings, trees, parcels, phones and the surrounding stage are authored in 3D.
 - The on-phone screen is **an illustrated mockup**, not a screenshot of production Advertio.
+- All Persian text and the English domain/labels use the repository's original **Vazirmatn Regular and Bold** fonts in `../../assets/fonts/`, with RTL text shaping and automatic width fitting. No installed system font is used.
 - No AI-made brand logo is used. If a logo is later added, only the original uploaded `Advertio Logo.png` may be used; never generate, trace or approximate a replacement.
 
 ## Render independently
