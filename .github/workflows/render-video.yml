@@ -82,11 +82,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install FFmpeg (required for video encoding)
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          command -v ffmpeg
+          command -v ffprobe
+          ffmpeg -version
       - name: Install project dependencies
         run: |
           npm install --no-audit --no-fund
           python -m pip install Pillow==11.3.0
-          ffmpeg -version | head -n 1
       - name: Validate only the selected video
         run: npm run lint
       - name: Render only this folder
