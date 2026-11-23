@@ -1,0 +1,65 @@
+name: Advertio Find Each Other — One-Time Final Render
+run-name: Final 20s | ${{ github.ref_name }}
+
+# Explicitly requested high-quality render. This push trigger runs only once
+# when this workflow is introduced on the dedicated video branch.
+on:
+  push:
+    branches:
+      - feature/find-each-other-video-quick-preview
+    paths:
+      - '.github/workflows/final-find-each-other-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  render-final:
+    name: Final MP4 (1080x1920, 30fps, 20 seconds)
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      ADVERTIO_RENDER_MODE: final
+    defaults:
+      run:
+        working-directory: videos/find-each-other-canada-iran-20s
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate encoding tools
+        run: |
+          command -v ffmpeg
+          command -v ffprobe
+      - name: Install and check this video only
+        run: |
+          python -m pip install Pillow==11.3.0
+          npm run lint
+      - name: Encode 30fps final from committed scene and typography assets
+        run: npm run render
+      - name: Verify final export
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, subprocess
+          f = Path('output.mp4')
+          assert f.exists() and f.stat().st_size > 100000, f
+          info = json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=codec_name,width,height,avg_frame_rate:format=duration','-of','json',str(f)],text=True))
+          v = info['streams'][0]
+          n,d = map(int,v['avg_frame_rate'].split('/'))
+          assert (int(v['width']),int(v['height'])) == (1080,1920), v
+          assert abs(n/d-30) < .01, v
+          assert abs(float(info['format']['duration'])-20) < .12, info
+          print('Final verified: 1080x1920, 30fps, 20s, H.264')
+          PY
+      - name: Upload final MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-find-each-other-20s-FINAL-${{ github.run_number }}
+          path: videos/find-each-other-canada-iran-20s/output.mp4
+          if-no-files-found: error
+          retention-days: 30
