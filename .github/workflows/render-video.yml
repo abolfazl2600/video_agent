@@ -1,7 +1,7 @@
 name: Render Advertio Video — Select Folder and Quality
 
 # In Actions → Run workflow, choose the git branch, a video project folder,
-# and Quick Preview/Preview/Final. Parcel-folder pushes auto-render Quick Preview.
+# and Quick Preview/Preview/Final. Supported folder pushes auto-render Quick Preview.
 run-name: ${{ github.event_name == 'workflow_dispatch' && format('{0} | {1} | {2}', inputs.mode, inputs.folder, github.ref_name) || format('Auto Render | {0}', github.ref_name) }}
 
 on:
@@ -98,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     env:
-      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (matrix.folder == 'parcel-to-iran-isometric' && 'quick-preview' || 'preview') }}
+      ADVERTIO_RENDER_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || ((matrix.folder == 'parcel-to-iran-isometric' || matrix.folder == 'mother-supplement-network') && 'quick-preview' || 'preview') }}
       VIDEO_FOLDER: ${{ matrix.folder }}
     strategy:
       fail-fast: false
@@ -150,10 +150,7 @@ jobs:
         shell: bash
         run: |
           if [ "$ADVERTIO_RENDER_MODE" = "quick-preview" ]; then
-            if [ "$VIDEO_FOLDER" != "parcel-to-iran-isometric" ]; then
-              echo "::error::Quick Preview is not yet supported for folder: $VIDEO_FOLDER"
-              exit 1
-            fi
+            node -e "if (!require('./package.json').scripts?.samples) { console.error('Quick Preview requires an npm samples script in the selected folder'); process.exit(1); }"
             ADVERTIO_RENDER_MODE=preview npm run samples
           else
             npm run render
