@@ -211,7 +211,8 @@ jobs:
           if os.environ['VIDEO_FOLDER'] in ('parcel-to-iran-isometric','mother-supplement-network','us-iran-air-cargo-topdown'):
               expected=(540,960,10) if mode=='preview' else (1080,1920,30)
               assert (w,h)==expected[:2] and abs(fps-expected[2])<0.01, (mode,w,h,fps)
-              assert 14.9<=duration<=15.1, (mode,duration)
+              expected_seconds=18 if os.environ['VIDEO_FOLDER']=='us-iran-air-cargo-topdown' else 15
+          assert expected_seconds-0.1<=duration<=expected_seconds+0.1, (mode,duration)
           print(f'{mode}: {name}, {w}x{h}, {fps}fps, {duration:.2f}s')
           PY
       - name: Upload Quick Preview images
