@@ -1,14 +1,26 @@
-name: Render Advertio Video by Folder
+name: Render Advertio Video — Select Folder and Quality
+
+# In Actions → Run workflow, choose the git branch, a video project folder,
+# and Preview/Final. A push to videos/** always runs Preview only.
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('{0} | {1} | {2}', inputs.mode, inputs.folder, github.ref_name) || format('Auto Preview | {0}', github.ref_name) }}
 
 on:
   workflow_dispatch:
     inputs:
       folder:
-        description: 'Video folder name inside videos/ (example: parcel-to-iran-isometric)'
+        description: 'Video project to render (inside videos/)'
         required: true
+        default: parcel-to-iran-isometric
+        type: choice
+        options:
+          - parcel-to-iran-isometric
+          - custom
+      custom_folder:
+        description: 'Only when folder=custom: enter new video folder slug'
+        required: false
         type: string
       mode:
-        description: 'Preview by default; Final only when explicitly requested'
+        description: 'Output quality (Preview is the default)'
         required: true
         default: preview
         type: choice
@@ -36,6 +48,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
           REQUESTED_FOLDER: ${{ inputs.folder }}
+          CUSTOM_FOLDER: ${{ inputs.custom_folder }}
           BEFORE_SHA: ${{ github.event.before }}
           AFTER_SHA: ${{ github.sha }}
         shell: bash
@@ -44,7 +57,16 @@ jobs:
           import json, os, pathlib, re, subprocess, sys
           root = pathlib.Path("videos")
           if os.environ["EVENT_NAME"] == "workflow_dispatch":
-              folders = [os.environ["REQUESTED_FOLDER"].strip()]
+              selected = os.environ["REQUESTED_FOLDER"].strip()
+              custom = os.environ.get("CUSTOM_FOLDER", "").strip()
+              if selected == "custom":
+                  if not custom:
+                      sys.exit("When selecting custom, enter a value in custom_folder")
+                  folders = [custom]
+              else:
+                  if custom:
+                      sys.exit("Clear custom_folder unless folder=custom")
+                  folders = [selected]
           else:
               before, after = os.environ.get("BEFORE_SHA", ""), os.environ["AFTER_SHA"]
               if not before or set(before) == {"0"}:
@@ -65,6 +87,7 @@ jobs:
                   continue  # a removed folder must not break other builds
               validated.append(name)
           print("folders=" + json.dumps(validated, separators=(",", ":")))
+          print("Selected video folders:", ", ".join(validated) if validated else "(none)", file=sys.stderr)
           PY
 
   render:
