@@ -1,6 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {C,F,BrandLogo,Parcel,Person,TechRings,pop,fp,useF} from './components';
+import {C,F,BrandLogo,Person,TechRings,pop,fp,useF} from './components';
+import {AirlinerDetailed,CargoParcelDetailed,TechnicalPill} from './DetailAssets';
 
 const at=(left:number,top:number,extra:React.CSSProperties={}):React.CSSProperties=>({position:'absolute',left,top,...extra});
 const text=(size:number,color=C.navy,weight=850):React.CSSProperties=>({fontFamily:F,fontSize:size,fontWeight:weight,color,lineHeight:1.46,letterSpacing:-1.5,direction:'rtl',textAlign:'center'});
@@ -43,52 +44,6 @@ const Card:React.FC<{children:React.ReactNode,css?:React.CSSProperties}>=({child
 
 // A nose-right, top-down airliner. Cabin windows, cockpit, winglets, both
 // engines, tailplane, doors and wingtip navigation lights are actual geometry.
-const DetailedAirplane:React.FC<{width?:number}>=({width=455})=><svg width={width} height={width*250/540} viewBox="0 0 540 250" style={{display:'block',overflow:'visible',filter:'drop-shadow(0 16px 16px rgba(0,66,130,.24))'}}>
- <defs>
-  <linearGradient id="fuse" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#D9F2FB"/><stop offset=".37" stopColor="#FFFFFF"/><stop offset=".75" stopColor="#E0EDF7"/><stop offset="1" stopColor="#B8D8E7"/></linearGradient>
-  <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#E9FAFF"/><stop offset=".6" stopColor="#C4E5F5"/><stop offset="1" stopColor="#83BEDB"/></linearGradient>
-  <linearGradient id="engine" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#FFFFFF"/><stop offset="1" stopColor="#8BB8D5"/></linearGradient>
- </defs>
- {/* Left/back is the tail; the rightmost tapered end is the nose. */}
- <path d="M80 119 30 45 48 37 146 112 146 138 48 213 30 204 80 131Z" fill="url(#wing)" stroke="#548EBD" strokeWidth="3"/>
- <path d="M146 114 99 69 124 64 187 118Z" fill="#79B8DC" opacity=".9"/>
- <path d="M146 136 99 182 124 186 187 132Z" fill="#79B8DC" opacity=".9"/>
- {/* Main upper wing, including edge details and an upturned winglet. */}
- <path d="M220 118 173 18 197 12 356 116 352 125Z" fill="url(#wing)" stroke="#4B91BD" strokeWidth="3"/>
- <path d="M170 20 163 4 176 0 197 12" fill="#167AC2"/>
- <path d="M225 115 188 29 203 24 336 116Z" fill="#F6FCFF" opacity=".57"/>
- <path d="M236 110 224 76 275 105" stroke="#70ADD0" strokeWidth="3" fill="none"/>
- <path d="M206 71 229 116 M252 81 280 117" stroke="#6FA8C7" strokeWidth="2" strokeDasharray="9 7"/>
- {/* Main lower wing and winglet. */}
- <path d="M220 132 173 232 197 238 356 134 352 125Z" fill="url(#wing)" stroke="#4B91BD" strokeWidth="3"/>
- <path d="M170 230 163 246 176 250 197 238" fill="#167AC2"/>
- <path d="M225 135 188 221 203 226 336 134Z" fill="#F5FCFF" opacity=".35"/>
- <path d="M236 140 224 174 275 145" stroke="#74AFD1" strokeWidth="3" fill="none"/>
- {/* Twin nacelles and dark circular intakes near trailing edges. */}
- <path d="M286 62 C302 55 321 57 333 66 L340 82 288 83Z" fill="url(#engine)" stroke="#397DAF" strokeWidth="3"/>
- <ellipse cx="335" cy="74" rx="8" ry="12" fill="#265B81"/><ellipse cx="336" cy="74" rx="3.5" ry="7" fill="#D7F9FF"/>
- <path d="M286 187 C302 194 321 193 333 184 L340 168 288 167Z" fill="url(#engine)" stroke="#397DAF" strokeWidth="3"/>
- <ellipse cx="335" cy="176" rx="8" ry="12" fill="#265B81"/><ellipse cx="336" cy="176" rx="3.5" ry="7" fill="#D7F9FF"/>
- {/* Rounded fuselage with bright metallic centre and strong right-facing nose. */}
- <path d="M41 114 Q62 108 107 108 L408 108 Q451 107 495 121 Q523 125 495 129 Q453 143 408 142 L107 142 Q62 142 41 135 Q31 125 41 114Z" fill="url(#fuse)" stroke="#407FAB" strokeWidth="4"/>
- <path d="M71 123 L480 123" stroke="#1178C6" strokeWidth="6" strokeLinecap="round"/>
- <path d="M72 129 L466 129" stroke="#54C8E8" strokeWidth="2" opacity=".8"/>
- {/* Cabin windows in two rows, doors and segment markings. */}
- {Array.from({length:19},(_,i)=><g key={i}>
-  <rect x={119+i*15} y="112" width="7.5" height="4.5" rx="1.9" fill="#2D759E"/>
-  <rect x={119+i*15} y="134" width="7.5" height="4.5" rx="1.9" fill="#2D759E"/>
- </g>)}
- <path d="M101 109v10 M101 131v10 M379 109v10 M379 132v9" stroke="#5C9EBE" strokeWidth="2"/>
- {/* Distinctive angular cockpit windshields sit just behind the front tip. */}
- <path d="M448 111 466 115 476 120 453 120Z" fill="#205A81"/>
- <path d="M448 139 466 135 476 130 453 130Z" fill="#205A81"/>
- <path d="M452 113 465 117 M452 137 465 133" stroke="#8FE5EF" strokeWidth="2"/>
- {/* Flight and navigation details. */}
- <circle cx="175" cy="8" r="5.5" fill="#E44F59"/><circle cx="175" cy="242" r="5.5" fill="#39BB8A"/>
- <circle cx="66" cy="125" r="3" fill="#2CC0E0"/>
- <text x="292" y="125" fontSize="12" fontWeight="bold" fontFamily="Arial,sans-serif" textAnchor="middle" fill="#07519A">ADVERTIO CARGO</text>
- </svg>;
-
 const cube=<svg viewBox="0 0 240 210" width="200" height="180">
  <path d="M16 72 119 14 224 73 120 133Z" fill="#F6DFBD" stroke="#D8B48A" strokeWidth="4"/>
  <path d="M16 72 120 133 120 201 16 143Z" fill="#D3A16C"/><path d="M120 133 224 73 224 142 120 201Z" fill="#B67A48"/>
@@ -105,7 +60,7 @@ const SceneOne:React.FC=()=>{
    <div style={text(74,C.blue,900)}>مسافرش رو پیدا کن!</div>
   </div>
   <div style={at(164,725,{opacity:.75,transform:'scale(1.15)'})}><TechRings size={730}/></div>
-  <div style={at(240,855,{transform:'scale(' +(.48+.52*pop(f,13,150))+') rotate('+((1-s)*-12)+'deg)'})}><Parcel width={600}/></div>
+  <div style={at(240,855,{transform:'scale(' +(.48+.52*pop(f,13,150))+') rotate('+((1-s)*-12)+'deg)'})}><CargoParcelDetailed width={600}/></div>
   <div style={at(165,1545,{width:750,textAlign:'center',opacity:fp(f,43,67)})}><Tag>PARCEL / TRAVELER / CONNECTION</Tag></div>
  </Scene>;
 };
@@ -216,7 +171,7 @@ const SceneFour:React.FC=()=>{
   </svg>
   <div style={at(63,1170)}><City name="TORONTO"/></div>
   <div style={at(770,1190)}><City name="TEHRAN"/></div>
-  <div style={at(pos.x,pos.y,{transform:'translate(-50%,-50%) rotate('+pos.angle+'deg)',transformOrigin:'center',filter:'drop-shadow(0 17px 23px rgba(13,99,161,.30))'})}><DetailedAirplane width={355}/></div>
+  <div style={at(pos.x,pos.y,{transform:'translate(-50%,-50%) rotate('+pos.angle+'deg)',transformOrigin:'center',filter:'drop-shadow(0 17px 23px rgba(13,99,161,.30))'})}><AirlinerDetailed width={422}/></div>
   <div style={at(104,1515,{width:866,opacity:fp(f,50,74)})}>
    <Card css={{padding:'27px 30px',background:'#FFFFFFEE'}}>
     <div style={text(32,C.navy)}>ارتباط برقرار می‌شه، هماهنگی مستقیمه</div>
@@ -234,8 +189,8 @@ const SceneFive:React.FC=()=>{
   </div>
   <div style={at(175,540,{opacity:.48})}><TechRings size={730}/></div>
   <div style={at(330,600,{transform:'scale(.70)',transformOrigin:'left top'})}><Phone width={565}/></div>
-  <div style={at(66,1000,{transform:'rotate(-17deg)'})}><DetailedAirplane width={440}/></div>
-  <div style={at(650,1120,{transform:'scale(.67)',transformOrigin:'left top'})}>{cube}</div>
+  <div style={at(66,1000,{transform:'rotate(-17deg)'})}><AirlinerDetailed width={560}/></div>
+  <div style={at(650,1120,{transform:'scale(.67)',transformOrigin:'left top'})}><CargoParcelDetailed width={330}/></div>
   <div style={at(95,1440,{width:890,opacity:fp(f,20,43)})}>
    <div style={text(55,C.navy)}>بار داری؟ مسافرت رو پیدا کن!</div>
    <div style={{...text(26,C.muted,600),marginTop:12}}>پلتفرم ارتباط فرستنده بار و مسافر هوایی</div>
