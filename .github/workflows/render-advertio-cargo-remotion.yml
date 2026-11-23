@@ -1,0 +1,115 @@
+name: Advertio Cargo — Remotion by Folder
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Cargo {0} | {1}', inputs.mode, github.ref_name) || format('Cargo Preview | {0}', github.ref_name) }}
+
+on:
+  push:
+    paths:
+      - 'videos/advertio-cargo-tech-launch/**'
+      - '.github/workflows/render-advertio-cargo-remotion.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'quick-preview = 10 portrait frames, preview = Reels 540x960, final = Reels 1080x1920'
+        required: true
+        default: preview
+        type: choice
+        options:
+          - quick-preview
+          - preview
+          - final
+
+permissions:
+  contents: read
+
+concurrency:
+  group: advertio-cargo-remotion-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CARGO_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'preview' }}
+      REMOTION_BROWSER_EXECUTABLE: /usr/bin/google-chrome
+    defaults:
+      run:
+        working-directory: videos/advertio-cargo-tech-launch
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: videos/advertio-cargo-tech-launch/package.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify folder and dependencies
+        run: |
+          test -f package.json
+          test -f public/brand/Advertio-Logo-Original-Source.png
+          test -f public/fonts/Vazirmatn-Bold.ttf
+          command -v google-chrome
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          npm install --no-audit --no-fund
+          python -m pip install pillow==11.3.0
+      - name: Validate Remotion and prepare original audio
+        run: |
+          npm run lint
+          npm run audio
+      - name: Quick Preview (ten stills, no MP4)
+        if: env.CARGO_MODE == 'quick-preview'
+        run: |
+          npm run render:quick
+          python scripts/contact-sheet.py
+      - name: Preview MP4
+        if: env.CARGO_MODE == 'preview'
+        run: |
+          npm run render:preview
+          ffmpeg -hide_banner -loglevel error -y -ss 10 -i out/preview.mp4 -frames:v 1 out/preview-poster.jpg
+      - name: Final MP4 (explicit manual mode only)
+        if: env.CARGO_MODE == 'final'
+        run: |
+          npm run render:final
+          ffmpeg -hide_banner -loglevel error -y -ss 10 -i out/final.mp4 -frames:v 1 out/final-poster.jpg
+      - name: Validate MP4 resolution, FPS and duration
+        if: env.CARGO_MODE != 'quick-preview'
+        run: |
+          python - <<'PY'
+          import json,os,subprocess,pathlib
+          mode=os.environ['CARGO_MODE']
+          path=pathlib.Path('out')/('final.mp4' if mode=='final' else 'preview.mp4')
+          assert path.exists() and path.stat().st_size>10_000,path
+          o=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',str(path)]))
+          s=next(x for x in o['streams'] if x['codec_type']=='video')
+          n,d=map(int,s['avg_frame_rate'].split('/'))
+          expected=(1080,1920,30) if mode=='final' else (540,960,15)
+          assert (s['width'],s['height'],round(n/d))==expected,(s,expected)
+          duration=float(o['format']['duration'])
+          assert 19.8<=duration<=20.2,duration
+          print(f'VERIFIED {mode}: {s["width"]}x{s["height"]}, {n/d:.0f}fps, {duration:.2f}s, {path.stat().st_size} bytes')
+          PY
+      - name: Verify Quick Preview
+        if: env.CARGO_MODE == 'quick-preview'
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          frames=list(Path('out/stills').glob('*.jpg'))
+          assert len(frames)==10,len(frames)
+          with Image.open('out/quick-preview-contact-sheet.jpg') as image:image.verify()
+          print('Quick Preview verified:',len(frames))
+          PY
+      - name: Upload selected output from Cargo folder only
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-cargo-remotion-${{ env.CARGO_MODE }}-${{ github.run_number }}
+          path: |
+            videos/advertio-cargo-tech-launch/out/*.mp4
+            videos/advertio-cargo-tech-launch/out/*poster.jpg
+            videos/advertio-cargo-tech-launch/out/quick-preview-contact-sheet.jpg
+            videos/advertio-cargo-tech-launch/out/stills/*.jpg
+          if-no-files-found: error
+          retention-days: 30

@@ -8,6 +8,7 @@ on:
   push:
     paths:
       - 'videos/**'
+      - '!videos/advertio-cargo-tech-launch/**'
       - '.github/workflows/render-video.yml'
 
 permissions:
@@ -42,6 +43,8 @@ jobs:
                             if p.startswith("videos/") and len(p.split("/")) >= 3})
           validated = []
           for name in folders:
+              if name == "advertio-cargo-tech-launch":
+                  continue  # Remotion cargo uses its own isolated workflow
               if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
                   sys.exit("Invalid video folder: " + name)
               project = root / name

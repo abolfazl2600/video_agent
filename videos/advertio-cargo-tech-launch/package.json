@@ -1,0 +1,28 @@
+{
+  "name": "advertio-cargo-tech-launch",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "npm run audio && remotion studio src/index.ts",
+    "lint": "tsc --noEmit && node --check scripts/quick-stills.mjs && python3 -m py_compile scripts/make-audio.py",
+    "audio": "python3 scripts/make-audio.py",
+    "render:preview": "npm run audio && remotion render src/index.ts AdvertioCargoPreview out/preview.mp4 --codec=h264 --crf=24 --concurrency=2",
+    "render:final": "npm run audio && remotion render src/index.ts AdvertioCargoFinal out/final.mp4 --codec=h264 --crf=18 --concurrency=2",
+    "render:quick": "npm run audio && node scripts/quick-stills.mjs"
+  },
+  "dependencies": {
+    "@fontsource/knewave": "^5.2.0",
+    "@remotion/cli": "4.0.545",
+    "@remotion/renderer": "4.0.545",
+    "@remotion/bundler": "4.0.545",
+    "remotion": "4.0.545",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.0"
+  }
+}
