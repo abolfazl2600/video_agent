@@ -2,10 +2,11 @@
   "name": "advertio-us-iran-air-cargo-topdown",
   "private": true,
   "type": "module",
-  "description": "18-second six-scene editorial air cargo advert, coded in Pillow using original BYekan typography",
+  "description": "18-second original code-drawn reference-matched six-scene 2.5D USA-Iran advert, using BYekan",
   "scripts": {
-    "lint": "python3 -m py_compile film.py",
-    "samples": "python3 film.py --samples",
-    "render": "python3 film.py"
+    "lint": "python3 run_reference_v3.py --lint",
+    "unpack": "python3 run_reference_v3.py --extract",
+    "samples": "python3 run_reference_v3.py --samples",
+    "render": "python3 run_reference_v3.py"
   }
 }
