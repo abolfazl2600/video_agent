@@ -1,0 +1,61 @@
+name: Artisans - Premium Camera Final 60fps
+on:
+  push:
+    branches: [feature/artisans-cinematic-transitions]
+    paths:
+      - 'videos/advertio-artisans-reel/render_premium_camera.py'
+      - '.github/workflows/render-artisans-premium-camera.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: artisans-premium-camera-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  render:
+    if: github.ref == 'refs/heads/feature/artisans-cinematic-transitions'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: videos/advertio-artisans-reel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install render dependencies
+        run: |
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          python -m pip install --disable-pip-version-check numpy==2.2.6 opencv-python-headless==4.11.0.86
+      - name: Render 3120 original camera frames
+        run: |
+          python -m py_compile render_premium_camera.py
+          python render_premium_camera.py
+      - name: Verify 60 FPS and decode all frames
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          f='renders/premium-camera-final.mp4'
+          d=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',f]))
+          v=d['streams'][0]
+          assert (v['width'],v['height'],v['avg_frame_rate'],v['r_frame_rate'],v['codec_name'],v['pix_fmt'])==(1080,1920,'60/1','60/1','h264','yuv420p'),d
+          assert int(v['nb_frames'])==3120,d
+          assert abs(float(d['format']['duration'])-52)<0.05,d
+          subprocess.run(['ffmpeg','-v','error','-xerror','-i',f,'-f','null','-'],check=True)
+          print('Verified:',d['format']['duration'],v['nb_frames'],v['avg_frame_rate'],d['format']['size'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artisans-premium-camera-final
+          path: videos/advertio-artisans-reel/renders/premium-camera-final.mp4
+          if-no-files-found: error
+      - name: Publish verified video
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f renders/premium-camera-final.mp4
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish premium camera final 60fps'
+            git push origin HEAD:feature/artisans-cinematic-transitions
+          fi
