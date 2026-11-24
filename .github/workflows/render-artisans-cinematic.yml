@@ -1,0 +1,63 @@
+name: Artisans - Cinematic Final
+on:
+  push:
+    branches: [feature/artisans-cinematic-transitions]
+    paths:
+      - 'videos/advertio-artisans-reel/render_cinematic.py'
+      - 'videos/advertio-artisans-reel/assets/**'
+      - '.github/workflows/render-artisans-cinematic.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: artisans-cinematic-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  render:
+    if: github.ref == 'refs/heads/feature/artisans-cinematic-transitions'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: videos/advertio-artisans-reel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install render dependencies
+        run: |
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          python -m pip install --disable-pip-version-check numpy==2.2.6 opencv-python-headless==4.11.0.86
+      - name: Validate source and render final
+        run: |
+          python -m py_compile render_cinematic.py
+          python render_cinematic.py
+      - name: Verify final MP4
+        run: |
+          python - <<'PY'
+          import json,subprocess
+          f='renders/cinematic-final.mp4'
+          d=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_streams','-show_format','-of','json',f]))
+          v=d['streams'][0]
+          assert (v['width'],v['height'],v['avg_frame_rate'],v['codec_name'],v['pix_fmt'])==(1080,1920,'30/1','h264','yuv420p'),d
+          assert int(v['nb_frames'])==1500,d
+          assert abs(float(d['format']['duration'])-50)<0.1,d
+          assert not any(s['codec_type']=='audio' for s in d['streams'])
+          subprocess.run(['ffmpeg','-v','error','-xerror','-i',f,'-f','null','-'],check=True)
+          print('Verified:',d['format']['duration'],v['nb_frames'],v['width'],v['height'])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artisans-cinematic-final
+          path: videos/advertio-artisans-reel/renders/cinematic-final.mp4
+          if-no-files-found: error
+      - name: Publish verified video
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f renders/cinematic-final.mp4
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified cinematic artisans final'
+            git push origin HEAD:feature/artisans-cinematic-transitions
+          fi
