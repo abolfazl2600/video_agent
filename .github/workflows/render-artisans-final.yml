@@ -1,0 +1,54 @@
+name: Advertio Artisans - Final Render
+on:
+  push:
+    branches:
+      - feature/advertio-artisans-reel-assets
+    paths:
+      - '.github/workflows/render-artisans-final.yml'
+      - 'videos/advertio-artisans-reel/render.py'
+      - 'videos/advertio-artisans-reel/assets/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: artisans-final-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Render final MP4
+        working-directory: videos/advertio-artisans-reel
+        run: python3 render.py
+      - name: Verify final video
+        working-directory: videos/advertio-artisans-reel
+        run: |
+          python3 - <<'PY'
+          import json, subprocess
+          f='renders/final.mp4'
+          d=json.loads(subprocess.check_output(['ffprobe','-v','error','-show_entries','stream=codec_name,width,height,avg_frame_rate,pix_fmt:format=duration','-of','json',f]))
+          v=d['streams'][0]
+          assert (v['width'],v['height'],v['avg_frame_rate'],v['codec_name'],v['pix_fmt'])==(1080,1920,'30/1','h264','yuv420p'),d
+          assert abs(float(d['format']['duration'])-47)<0.15,d
+          subprocess.run(['ffmpeg','-v','error','-xerror','-i',f,'-f','null','-'],check=True)
+          print(d)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: advertio-artisans-final
+          path: videos/advertio-artisans-reel/renders/final.mp4
+          if-no-files-found: error
+      - name: Commit verified final video
+        if: github.ref == 'refs/heads/feature/advertio-artisans-reel-assets'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f videos/advertio-artisans-reel/renders/final.mp4
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish verified Advertio artisans final MP4'
+            git push origin HEAD:feature/advertio-artisans-reel-assets
+          fi
