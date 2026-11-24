@@ -8,6 +8,6 @@ export const Root: React.FC = () => (
     <Composition id="AdvertioCargoFinal" component={CargoReels}
       durationInFrames={600} fps={30} width={1080} height={1920}/>
     <Composition id="AdvertioCargoPreview" component={CargoReels}
-      durationInFrames={300} fps={15} width={540} height={960}/>
+      durationInFrames={300} fps={15} width={1080} height={1920}/>
   </>
 );

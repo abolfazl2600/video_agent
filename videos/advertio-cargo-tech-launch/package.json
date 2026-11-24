@@ -7,7 +7,7 @@
     "studio": "npm run audio && remotion studio src/index.ts",
     "lint": "tsc --noEmit && node --check scripts/quick-stills.mjs && python3 -m py_compile scripts/make-audio.py",
     "audio": "python3 scripts/make-audio.py",
-    "render:preview": "npm run audio && remotion render src/index.ts AdvertioCargoPreview out/preview.mp4 --codec=h264 --crf=24 --concurrency=2",
+    "render:preview": "npm run audio && remotion render src/index.ts AdvertioCargoPreview out/preview.mp4 --scale=0.5 --codec=h264 --crf=24 --concurrency=2",
     "render:final": "npm run audio && remotion render src/index.ts AdvertioCargoFinal out/final.mp4 --codec=h264 --crf=18 --concurrency=2",
     "render:quick": "npm run audio && node scripts/quick-stills.mjs"
   },
