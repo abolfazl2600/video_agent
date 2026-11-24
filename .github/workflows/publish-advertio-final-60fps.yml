@@ -1,0 +1,53 @@
+name: Advertio — publish exact 60 FPS approved final
+on:
+  push:
+    branches:
+      - feature/parcel-finder-image-motion-20s
+    paths:
+      - videos/parcel-finder-image-motion-20s/final60/chunks/**
+      - .github/workflows/publish-advertio-final-60fps.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-exact-video:
+    if: github.ref == 'refs/heads/feature/parcel-finder-image-motion-20s'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Reconstruct the exact approved MP4 and check SHA-256
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIR="videos/parcel-finder-image-motion-20s"
+          TARGET="$DIR/final/advertio_package_finder_20s_SMOOTH_FINAL_1080x1920_60fps.mp4"
+          mkdir -p "$DIR/final"
+          test "$(find "$DIR/final60/chunks" -name 'part-*.bin' -type f | wc -l)" -eq 20
+          cat "$DIR"/final60/chunks/part-*.bin > "$TARGET"
+          printf '%s  %s\n' '4fd6cc32ed803fef1c7fa8ab955e511647d0ec20de93333d3dff53202946282a' "$TARGET" | sha256sum -c -
+          # SHA-256 and byte count verify the exact MP4 already inspected with
+          # ffprobe (1080x1920 / 60fps / 20.000s) before transfer.
+          test "$(wc -c < "$TARGET")" -eq 11980252
+          echo "Verified SHA-256, original bytes, and complete video reconstruction"
+      - name: Upload untouched original MP4 as downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: advertio-approved-final-1080x1920-60fps
+          path: videos/parcel-finder-image-motion-20s/final/advertio_package_finder_20s_SMOOTH_FINAL_1080x1920_60fps.mp4
+          retention-days: 90
+          if-no-files-found: error
+      - name: Commit playable MP4 to GitHub branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add videos/parcel-finder-image-motion-20s/final/advertio_package_finder_20s_SMOOTH_FINAL_1080x1920_60fps.mp4
+          git rm -r -q -- videos/parcel-finder-image-motion-20s/final60/chunks
+          git commit -m "video: publish exact verified smooth 1080x1920 60fps final MP4"
+          git push origin HEAD:feature/parcel-finder-image-motion-20s

@@ -1,0 +1,1 @@
+Original approved output video: advertio_package_finder_20s_SMOOTH_FINAL_1080x1920_60fps.mp4\nSHA-256: 4fd6cc32ed803fef1c7fa8ab955e511647d0ec20de93333d3dff53202946282a\nBytes: 11980252\nDuration: 20.000s\nResolution: 1080x1920\nFPS: 60\nCodec: H.264 / MP4\nNo re-encoding or design changes: concatenation of contiguous byte chunks only.\n
