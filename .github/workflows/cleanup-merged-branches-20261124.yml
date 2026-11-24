@@ -1,0 +1,57 @@
+name: Cleanup verified merged branches - 2026-11-24
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cleanup-merged-branches-20261124.yml'
+permissions:
+  contents: write
+concurrency:
+  group: cleanup-merged-branches-20261124
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify and remove only reviewed merged refs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          while read -r branch expected; do
+            ref="refs/heads/$branch"
+            remote="$(git ls-remote --heads origin "$ref" | cut -f1)"
+            if [ -z "$remote" ]; then
+              echo "Already absent: $branch"
+              continue
+            fi
+            if [ "$remote" != "$expected" ]; then
+              echo "::warning::Changed branch, retaining $branch"
+              continue
+            fi
+            if ! git merge-base --is-ancestor "$expected" origin/main; then
+              echo "::warning::Not fully merged, retaining $branch"
+              continue
+            fi
+            git push --force-with-lease="$ref:$expected" origin ":$ref"
+            test -z "$(git ls-remote --heads origin "$ref")"
+            echo "Deleted verified merged branch: $branch"
+          done <<'REVIEWED_REFS'
+          feature/advertio-artisans-reel 7b61ffe8b30603514d3fe1bdf11e0d5ba3a23fd9
+          feature/advertio-artisans-reel-assets 8154627b8661e0f8218c918a640a727ceab5d635
+          feature/advertio-cargo-remotion-launch 30b16f8cad5dd56f5bc4ef69e111623094e3f160
+          feature/dark-tech-tiktok-actions 6128b978741f843b482d0907f77b505ab73a9306
+          feature/detailed-aircraft-airport-apron 1e7a83988a61d53677bd448c29fb3ef14e174adf
+          feature/fast-webgl-headless-renderer 518e4f79d7fa8e187ec95531d2ef85ce1c154c42
+          feature/find-each-other-canada-iran-20s c5f14b0be05ad7d75b61898f5eb2b7dc0edf8531
+          feature/find-each-other-video-quick-preview a43fcb4ad3b7f3e21a3ce3d0b381df8debbf2bca
+          feature/mother-supplement-network-isometric d2eb7f075747236ce1dd07e5f7ee9f5558d8c1ac
+          feature/parcel-finder-image-motion-20s 22ef1ba91c19be2cce8353872c0cf2fd836bf7e6
+          feature/restyle-soft-minimal-isometric 91bdeaaf6e60b2ffde2bc723a859ae5827f884d3
+          feature/traveler-dollar-income-clean-final 7ac0dd8ec2bdefa8b5730a21fbdb59554fa54c68
+          feature/traveler-dollar-income-motion-23s 5a53cfec1d1675d24451b04f6d1420d9cc8a758a
+          REVIEWED_REFS
