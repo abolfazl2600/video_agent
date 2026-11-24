@@ -1,0 +1,10 @@
+{
+  "name": "advertio-traveler-dollar-income-23s",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "lint": "python3 -m py_compile render.py",
+    "samples": "python3 render.py --samples",
+    "render": "python3 render.py"
+  }
+}
